@@ -158,15 +158,16 @@ unsigned char USI_TWI_Start_Transceiver_With_Data( unsigned char *msg, unsigned 
 	}
 #endif
 
+	/*MC TODO: do/while sucks. Anyway, this loop is executed once for every byte that needs to be sent or received */
 	/*Write address and Read/Write data */
-	do //MC TODO: do/while sucks
+	do
 	{
 		/* If masterWrite cycle (or inital address tranmission)*/
 		if (USI_TWI_state.addressMode || USI_TWI_state.masterWriteDataMode)
 		{
 			/* Write a byte */
 			PULL_SCL_LOW;
-			USIDR     = *(msg++);                        // Setup data.
+			USIDR     = *(msg++);                        // Setup data. // MC: put next byte on the wire?
 			USI_TWI_Master_Transfer( tempUSISR_8bit );    // Send 8 bits on bus.
 
 			/* Clock and verify (N)ACK from slave */
