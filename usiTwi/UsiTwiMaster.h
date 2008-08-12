@@ -27,29 +27,13 @@
 *
 ****************************************************************************/
 #include <avr/io.h>
-#include <util/twi.h>
-#include <ctype.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <inttypes.h>
-#include <util/delay.h>
-#include <avr/wdt.h>
-#include <avr/pgmspace.h>
-#include <stdlib.h>
 //********** Defines **********//
 // Defines controlling timing limits
-//#define TWI_FAST_MODE
 
 #define SYS_CLK   4000.0  // [kHz]
-
-#ifdef TWI_FAST_MODE               // TWI FAST mode timing limits. SCL = 100-400kHz
-  #define T2_TWI    ((SYS_CLK *1300) /1000000) +1 // >1,3us
-  #define T4_TWI    ((SYS_CLK * 600) /1000000) +1 // >0,6us
-
-#else                              // TWI STANDARD mode timing limits. SCL <= 100kHz
-  #define T2_TWI    ((SYS_CLK *4700) /1000000) +1 // >4,7us
-  #define T4_TWI    ((SYS_CLK *4000) /1000000) +1 // >4,0us
-#endif
+// TWI STANDARD mode timing limits. SCL <= 100kHz
+#define T2_TWI    ((SYS_CLK *4700) /1000000) +1 // >4,7us
+#define T4_TWI    ((SYS_CLK *4000) /1000000) +1 // >4,0us
 
 // Defines controling code generating
 //#define PARAM_VERIFICATION
@@ -93,8 +77,8 @@
     #define PIN_USI_SCL         PINE4
 #endif
 
-//#if defined(__ATtiny25__) | defined(__ATtiny45__) | defined(__ATtiny85__) |\
-//   defined(__AT90Tiny26__) | defined(__ATtiny26__)
+//MC: hack to get this to work with avr-gcc and attiny45
+/*#if defined(__ATtiny25__) | defined(__ATtiny45__) | defined(__ATtiny85__) | defined(__AT90Tiny26__) | defined(__ATtiny26__)*/
     #define DDR_USI             DDRB
     #define PORT_USI            PORTB
     #define PIN_USI             PINB
@@ -102,7 +86,7 @@
     #define PORT_USI_SCL        PORTB2
     #define PIN_USI_SDA         PINB0
     #define PIN_USI_SCL         PINB2
-//#endif
+/*#endif*/
 
 #if defined(__AT90Tiny2313__) | defined(__ATtiny2313__)
     #define DDR_USI             DDRB
