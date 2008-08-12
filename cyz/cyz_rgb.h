@@ -37,6 +37,7 @@
  *******************************************************************************/
 
 /* select port and data direction register on which pin leds are */
+#include <stdlib.h>
 #define PWM_PORT PORTB
 #define PWM_DDR DDRB
 
@@ -63,10 +64,72 @@ typedef struct _color {
 	unsigned char b;
 } Color;
 
+
+typedef struct CYZ_RGB {
+	void (*init)();
+	void (*set_color)(void* cyz_rgb, unsigned char r, unsigned char g, unsigned char b);
+	void (*set_fade_color)(void* cyz_rgb, unsigned char r, unsigned char g, unsigned char b);
+	void (*pulse)(void* cyz_rgb);
+	unsigned char pulse_count;
+	Color color;
+	Color fade_color;
+} Cyz_rgb;
+
+void _CYZ_RGB_init() {
+	PWM_DDR |= 1<<PINRED;
+	PWM_DDR |= 1<<PINGRN;
+	PWM_DDR |= 1<<PINBLU;
+}
+
+void _CYZ_RGB_set_instance_color(void* instance, unsigned char r, unsigned char g, unsigned char b) {
+	Cyz_rgb* cyz_rgb = ((Cyz_rgb*)instance);
+	((Cyz_rgb*)cyz_rgb)->color.r = r;
+	((Cyz_rgb*)cyz_rgb)->color.g = g;
+	((Cyz_rgb*)cyz_rgb)->color.b = b;
+}
+
+void _CYZ_RGB_set_instance_fade_color(void* instance, unsigned char r, unsigned char g, unsigned char b) {
+	Cyz_rgb* cyz_rgb = ((Cyz_rgb*)instance);
+	((Cyz_rgb*)cyz_rgb)->fade_color.r = r;
+	((Cyz_rgb*)cyz_rgb)->fade_color.g = g;
+	((Cyz_rgb*)cyz_rgb)->fade_color.b = b;
+}
+
+#define REDUCE_DISTANCE(A,B) \
+	if (A!=B) { A += ((A>B) ? -1 : +1); }
+
+void _CYZ_RGB_fade_step(void* instance) {
+	Cyz_rgb* cyz_rgb = ((Cyz_rgb*)instance);
+	REDUCE_DISTANCE(cyz_rgb->color.r, cyz_rgb->fade_color.r);
+	REDUCE_DISTANCE(cyz_rgb->color.g, cyz_rgb->fade_color.g);
+	REDUCE_DISTANCE(cyz_rgb->color.b, cyz_rgb->fade_color.b);
+}
+
+void _CYZ_RGB_pulse(void* instance) {
+	Cyz_rgb* cyz_rgb = ((Cyz_rgb*)instance);
+	if (++cyz_rgb->pulse_count == 0) { RED_LED_ON; GRN_LED_ON; BLU_LED_ON; }
+	if (cyz_rgb->pulse_count == cyz_rgb->color.r) RED_LED_OFF;
+	if (cyz_rgb->pulse_count == cyz_rgb->color.g) GRN_LED_OFF;
+	if (cyz_rgb->pulse_count == cyz_rgb->color.b) BLU_LED_OFF;
+	if (cyz_rgb->pulse_count == 0) {
+		_CYZ_RGB_fade_step(cyz_rgb);
+	}
+}
+
+/* to be called only one time, usually in main */
+/* Configures initial color and DDR: put pins connected to leds in output mode */
+Cyz_rgb* CYZ_RGB_GET_INSTANCE() {
+	 Cyz_rgb* instance = (Cyz_rgb*) malloc(sizeof(struct CYZ_RGB));
+	 instance->init = _CYZ_RGB_init;
+	 instance->set_color = _CYZ_RGB_set_instance_color;
+	 instance->set_fade_color = _CYZ_RGB_set_instance_fade_color;
+	 instance->pulse_count = 0xFF;
+	 return instance;
+}
+
 /* to be called in main file global space */
 #define CYZ_RGB_setup() \
-	Color _CYZ_RGB_color; \
-	Color _CYZ_RGB_fade_color
+	Cyz_rgb cyz_rgb;
 
 #define CYZ_RGB_color_r _CYZ_RGB_color.r
 #define CYZ_RGB_color_g _CYZ_RGB_color.g
@@ -76,23 +139,12 @@ typedef struct _color {
 #define CYZ_RGB_fade_color_g _CYZ_RGB_fade_color.g
 #define CYZ_RGB_fade_color_b _CYZ_RGB_fade_color.b
 
-/* to be called only one time, usually in main */
-/* Configures initial color and DDR: put pins connected to leds in output mode */
-#define CYZ_RGB_init() \
-	CYZ_RGB_set_color(0,0,0); \
-	PWM_DDR |= 1<<PINRED; \
-	PWM_DDR |= 1<<PINGRN; \
-	PWM_DDR |= 1<<PINBLU;
-
 /* add or subtract 1 to A as to get closer to B */
-#define REDUCE_DISTANCE(A,B) \
-	if (A!=B) { A += ((A>B) ? -1 : +1); }
+
 
 /* bring current color one step closer to target color */
 #define FADE_STEP \
-	REDUCE_DISTANCE(_CYZ_RGB_color.r, _CYZ_RGB_fade_color.r) \
-	REDUCE_DISTANCE(_CYZ_RGB_color.g, _CYZ_RGB_fade_color.g) \
-	REDUCE_DISTANCE(_CYZ_RGB_color.b, _CYZ_RGB_fade_color.b)
+
 
 
 /* to be called once for each pulse, usually on interrupt SIG_OVERFLOW0 */
@@ -112,10 +164,6 @@ typedef struct _color {
 #define CYZ_RGB_set_fade_color(R,G,B) \
 	_CYZ_RGB_set_color(&_CYZ_RGB_fade_color, R, G, B)
 
-void _CYZ_RGB_set_color(Color* color, unsigned char r, unsigned char g, unsigned char b) {
-	color->r = r;
-	color->g = g;
-	color->b = b;
-}
+
 
 

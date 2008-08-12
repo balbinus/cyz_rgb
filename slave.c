@@ -1,14 +1,21 @@
 #include <avr/interrupt.h>
-#include "cyz/cyz_rgb.h"
-
 #include "usiTwi/usiTwiSlave.h"
+#include "cyz/cyz_rgb.h"
+#include "cyz/cyz_cmd.h"
 unsigned char cyz_slaveAddress;
 
-CYZ_RGB_setup();
+//CYZ_RGB_setup();
+
+Cyz_rgb* cyz_rgb;
 
 int main(void)
 {
-	CYZ_RGB_init();
+	Cyz_rgb* cyz_rgb = CYZ_RGB_GET_INSTANCE();
+
+	cyz_rgb->init();
+	cyz_rgb->set_color(cyz_rgb, 0,0,0);
+	//Cyz_rgb->init();
+	//CYZ_RGB_init();
 
 	cyz_slaveAddress = 0x26;		// This can be change to your own address
 	usiTwiSlaveInit(cyz_slaveAddress);
@@ -19,26 +26,11 @@ int main(void)
 	sei(); // enable interrupts
 
 
-	CYZ_RGB_set_color(127,255,0);
-	int cnt = 0;
-	char rcv[4];
+	//CYZ_RGB_set_color(127,255,0);
+
 	for(;;)
 	{
-	    if(usiTwiDataInReceiveBuffer())
-	    {
-	    	rcv[cnt++] = usiTwiReceiveByte();
-			if (cnt==4) {
-				switch (rcv[0]) {
-				case 'n':
-					CYZ_RGB_set_color(rcv[1], rcv[2] , rcv[3]);
-				break;
-				case 'c':
-					CYZ_RGB_set_fade_color(rcv[1],rcv[2],rcv[3]);
-				break;
-				}
-				cnt = 0;
-			}
-	    }
+		CYZ_CMD_receive_and_execute();
 	}
 
 	return 1;
@@ -49,7 +41,8 @@ int main(void)
 
 ISR(SIG_OVERFLOW0)
 {
-	CYZ_RGB_pulse();
+	cyz_rgb->pulse(cyz_rgb);
+	//CYZ_RGB_pulse();
 }
 
 
