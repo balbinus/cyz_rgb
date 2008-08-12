@@ -7,6 +7,10 @@ unsigned char CYZ_CMD_rcv_buf[8];
 unsigned char CYZ_CMD_rcv_cnt = 0;
 unsigned char CYZ_CMD_current_cmd_len = 0xFF;
 
+typedef struct CYZ_CMD {
+
+} Cyz_cmd;
+
 /* returns the legth of the command, including the command defintion */
 /* 0xFF means error */
 unsigned char CYZ_CMF_get_cmd_len (char cmd) {
@@ -20,7 +24,7 @@ unsigned char CYZ_CMF_get_cmd_len (char cmd) {
 	return 0xFF;
 }
 
-void CYZ_CMD_receive_and_execute() {
+void CYZ_CMD_receive_and_execute(Cyz_rgb *cyz_rgb) {
 	if(usiTwiDataInReceiveBuffer()) {
 		CYZ_CMD_rcv_buf[CYZ_CMD_rcv_cnt] = usiTwiReceiveByte();
 		/* first byte contains the command, use it to decide length of payload */
@@ -31,10 +35,10 @@ void CYZ_CMD_receive_and_execute() {
 		if (CYZ_CMD_current_cmd_len <= 8 && CYZ_CMD_rcv_cnt==CYZ_CMD_current_cmd_len) {
 			switch (CYZ_CMD_rcv_buf[0]) {
 			case CMD_GO_TO_RGB:
-				//CYZ_RGB_set_color(CYZ_CMD_rcv_buf[1], CYZ_CMD_rcv_buf[2] , CYZ_CMD_rcv_buf[3]);
+				cyz_rgb->set_color(cyz_rgb, CYZ_CMD_rcv_buf[1], CYZ_CMD_rcv_buf[2] , CYZ_CMD_rcv_buf[3]);
 			break;
 			case CMD_FADE_TO_RGB:
-				//CYZ_RGB_set_fade_color(CYZ_CMD_rcv_buf[1],CYZ_CMD_rcv_buf[2],CYZ_CMD_rcv_buf[3]);
+				cyz_rgb->set_fade_color(cyz_rgb, CYZ_CMD_rcv_buf[1],CYZ_CMD_rcv_buf[2],CYZ_CMD_rcv_buf[3]);
 			break;
 			}
 			CYZ_CMD_rcv_cnt = 0;

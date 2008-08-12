@@ -58,12 +58,15 @@
 #define GRN_LED_ON PWM_PORT |= 1<<PINGRN
 #define BLU_LED_ON PWM_PORT |= 1<<PINBLU
 
+
+#define REDUCE_DISTANCE(A,B) \
+	if (A!=B) { A += ((A>B) ? -1 : +1); }
+
 typedef struct _color {
     unsigned char r;
 	unsigned char g;
 	unsigned char b;
 } Color;
-
 
 typedef struct CYZ_RGB {
 	void (*init)();
@@ -83,20 +86,17 @@ void _CYZ_RGB_init() {
 
 void _CYZ_RGB_set_instance_color(void* instance, unsigned char r, unsigned char g, unsigned char b) {
 	Cyz_rgb* cyz_rgb = ((Cyz_rgb*)instance);
-	((Cyz_rgb*)cyz_rgb)->color.r = r;
-	((Cyz_rgb*)cyz_rgb)->color.g = g;
-	((Cyz_rgb*)cyz_rgb)->color.b = b;
+	cyz_rgb->color.r = r;
+	cyz_rgb->color.g = g;
+	cyz_rgb->color.b = b;
 }
 
 void _CYZ_RGB_set_instance_fade_color(void* instance, unsigned char r, unsigned char g, unsigned char b) {
 	Cyz_rgb* cyz_rgb = ((Cyz_rgb*)instance);
-	((Cyz_rgb*)cyz_rgb)->fade_color.r = r;
-	((Cyz_rgb*)cyz_rgb)->fade_color.g = g;
-	((Cyz_rgb*)cyz_rgb)->fade_color.b = b;
+	cyz_rgb->fade_color.r = r;
+	cyz_rgb->fade_color.g = g;
+	cyz_rgb->fade_color.b = b;
 }
-
-#define REDUCE_DISTANCE(A,B) \
-	if (A!=B) { A += ((A>B) ? -1 : +1); }
 
 void _CYZ_RGB_fade_step(void* instance) {
 	Cyz_rgb* cyz_rgb = ((Cyz_rgb*)instance);
@@ -126,44 +126,3 @@ Cyz_rgb* CYZ_RGB_GET_INSTANCE() {
 	 instance->pulse_count = 0xFF;
 	 return instance;
 }
-
-/* to be called in main file global space */
-#define CYZ_RGB_setup() \
-	Cyz_rgb cyz_rgb;
-
-#define CYZ_RGB_color_r _CYZ_RGB_color.r
-#define CYZ_RGB_color_g _CYZ_RGB_color.g
-#define CYZ_RGB_color_b _CYZ_RGB_color.b
-
-#define CYZ_RGB_fade_color_r _CYZ_RGB_fade_color.r
-#define CYZ_RGB_fade_color_g _CYZ_RGB_fade_color.g
-#define CYZ_RGB_fade_color_b _CYZ_RGB_fade_color.b
-
-/* add or subtract 1 to A as to get closer to B */
-
-
-/* bring current color one step closer to target color */
-#define FADE_STEP \
-
-
-
-/* to be called once for each pulse, usually on interrupt SIG_OVERFLOW0 */
-#define CYZ_RGB_pulse() \
-	static unsigned char _CYZ_RGB_pulse_count = 0xFF; \
-	if (++_CYZ_RGB_pulse_count == 0) { RED_LED_ON; GRN_LED_ON; BLU_LED_ON; } \
-	if (_CYZ_RGB_pulse_count == _CYZ_RGB_color.r) RED_LED_OFF; \
-	if (_CYZ_RGB_pulse_count == _CYZ_RGB_color.g) GRN_LED_OFF; \
-	if (_CYZ_RGB_pulse_count == _CYZ_RGB_color.b) BLU_LED_OFF; \
-	if (_CYZ_RGB_pulse_count == 0) { FADE_STEP; }
-
-/* set color for immediate display */
-#define CYZ_RGB_set_color(R, G, B) \
-	_CYZ_RGB_set_color(&_CYZ_RGB_color, R, G, B)
-
-/* set color to to fade in */
-#define CYZ_RGB_set_fade_color(R,G,B) \
-	_CYZ_RGB_set_color(&_CYZ_RGB_fade_color, R, G, B)
-
-
-
-

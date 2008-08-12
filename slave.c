@@ -30,7 +30,7 @@ int main(void)
 
 	for(;;)
 	{
-		CYZ_CMD_receive_and_execute();
+		CYZ_CMD_receive_and_execute(cyz_rgb);
 	}
 
 	return 1;
@@ -38,11 +38,9 @@ int main(void)
 
 
 /*	Triggered when timer overflows. */
-
 ISR(SIG_OVERFLOW0)
 {
 	cyz_rgb->pulse(cyz_rgb);
-	//CYZ_RGB_pulse();
 }
 
 
