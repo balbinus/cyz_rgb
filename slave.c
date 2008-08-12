@@ -21,10 +21,11 @@ int main(void)
 	TCCR0B = (1 << CS00);  /* start timer, no prescale */
 	sei(); // enable interrupts
 
-
 	for(;;)
 	{
-		CYZ_CMD_receive_and_execute(cyz_rgb);
+		if(usiTwiDataInReceiveBuffer()) {
+			CYZ_CMD_receive_and_execute(cyz_rgb, usiTwiReceiveByte());
+		}
 	}
 
 	return 1;
