@@ -4,11 +4,12 @@
 #define TWI_GEN_CALL         0x00
 #include "usiTwi/usiTwiMaster.h"
 
-CYZ_RGB_setup();
+Cyz_rgb* cyz_rgb;
 
-int main(void)
-{
-	//CYZ_RGB_init();
+int main(void) {
+	cyz_rgb = CYZ_RGB_GET_INSTANCE();
+	cyz_rgb->init();
+	cyz_rgb->set_color(cyz_rgb, 255,125,50);
 
 	USI_TWI_Master_Initialise();
 
@@ -29,9 +30,9 @@ void cyz_master_send_color() {
 	// send new color to slave
 	messageBuf[0] = TWI_GEN_CALL; // The first byte must always consist of General Call code or the TWI slave address.
     messageBuf[1] = 'c';          // The command or data to be included in the general call.
-   // messageBuf[2] = CYZ_RGB_fade_color_r;
-    //messageBuf[3] = CYZ_RGB_fade_color_g;
-    //messageBuf[4] = CYZ_RGB_fade_color_b;
+    messageBuf[2] = cyz_rgb->fade_color.r;
+    messageBuf[3] = cyz_rgb->fade_color.g;
+    messageBuf[4] = cyz_rgb->fade_color.b;
     unsigned char success = USI_TWI_Start_Transceiver_With_Data( messageBuf, 5 );
     if (!success) {
 		USI_TWI_Master_Initialise();
@@ -75,12 +76,13 @@ ISR(SIG_OVERFLOW0)
 {
 	static unsigned int sigcount = -1;
 	if (++sigcount == 0) { //TODO: better to use another clock, prescaled
-		//CYZ_RGB_fade_color_r += 100;
-		//CYZ_RGB_fade_color_g += 70;
-		//CYZ_RGB_fade_color_b += 50;
+		cyz_rgb->fade = 1;
+		cyz_rgb->fade_color.r += 100;
+		cyz_rgb->fade_color.g += 70;
+		cyz_rgb->fade_color.b += 50;
 		// TODO: learn to predict how long beteen each overflow
 		cyz_master_send_color();
 	}
 
-	//CYZ_RGB_pulse();
+	cyz_rgb->pulse(cyz_rgb);
 }
