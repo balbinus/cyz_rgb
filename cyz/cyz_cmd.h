@@ -7,14 +7,9 @@ unsigned char CYZ_CMD_rcv_buf[8];
 unsigned char CYZ_CMD_rcv_cnt = 0;
 unsigned char CYZ_CMD_current_cmd_len = 0xFF;
 
-typedef struct CYZ_CMD {
-
-} Cyz_cmd;
-
 /* returns the legth of the command, including the command defintion */
 /* 0xFF means error */
 unsigned char CYZ_CMF_get_cmd_len (char cmd) {
-
 	switch(cmd) {
 		case CMD_GO_TO_RGB:
 			return 4;

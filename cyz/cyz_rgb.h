@@ -58,22 +58,21 @@
 #define GRN_LED_ON PWM_PORT |= 1<<PINGRN
 #define BLU_LED_ON PWM_PORT |= 1<<PINBLU
 
-
-#define REDUCE_DISTANCE(A,B) \
-	if (A!=B) { A += ((A>B) ? -1 : +1); }
-
 typedef struct _color {
     unsigned char r;
 	unsigned char g;
 	unsigned char b;
 } Color;
 
+//TODO: i can't declare pointer to functions with Cyz_rgb* in the signature, have to fallback to void* and cas on assignment.
+// it seems that Cyz_rgb does not exist yet.
 typedef struct CYZ_RGB {
 	void (*init)();
 	void (*set_color)(void* cyz_rgb, unsigned char r, unsigned char g, unsigned char b);
 	void (*set_fade_color)(void* cyz_rgb, unsigned char r, unsigned char g, unsigned char b);
 	void (*pulse)(void* cyz_rgb);
 	unsigned char pulse_count;
+	unsigned char fade;
 	Color color;
 	Color fade_color;
 } Cyz_rgb;
@@ -84,45 +83,42 @@ void _CYZ_RGB_init() {
 	PWM_DDR |= 1<<PINBLU;
 }
 
-void _CYZ_RGB_set_instance_color(void* instance, unsigned char r, unsigned char g, unsigned char b) {
-	Cyz_rgb* cyz_rgb = ((Cyz_rgb*)instance);
-	cyz_rgb->color.r = r;
-	cyz_rgb->color.g = g;
-	cyz_rgb->color.b = b;
+void _CYZ_RGB_set_color(Cyz_rgb* this, unsigned char r, unsigned char g, unsigned char b) {
+	this->color.r = r;
+	this->color.g = g;
+	this->color.b = b;
 }
 
-void _CYZ_RGB_set_instance_fade_color(void* instance, unsigned char r, unsigned char g, unsigned char b) {
-	Cyz_rgb* cyz_rgb = ((Cyz_rgb*)instance);
-	cyz_rgb->fade_color.r = r;
-	cyz_rgb->fade_color.g = g;
-	cyz_rgb->fade_color.b = b;
+void _CYZ_RGB_set_fade_color(Cyz_rgb* this, unsigned char r, unsigned char g, unsigned char b) {
+	this->fade = 1;
+	this->fade_color.r = r;
+	this->fade_color.g = g;
+	this->fade_color.b = b;
 }
 
-void _CYZ_RGB_fade_step(void* instance) {
-	Cyz_rgb* cyz_rgb = ((Cyz_rgb*)instance);
-	REDUCE_DISTANCE(cyz_rgb->color.r, cyz_rgb->fade_color.r);
-	REDUCE_DISTANCE(cyz_rgb->color.g, cyz_rgb->fade_color.g);
-	REDUCE_DISTANCE(cyz_rgb->color.b, cyz_rgb->fade_color.b);
+void __CYZ_RGB_fade_step(Cyz_rgb* this) {
+	if (this->color.r!=this->fade_color.r) { this->color.r += ((this->color.r>this->fade_color.r) ? -1 : +1); }
+	if (this->color.r!=this->fade_color.g) { this->color.g += ((this->color.g>this->fade_color.g) ? -1 : +1); }
+	if (this->color.r!=this->fade_color.b) { this->color.b += ((this->color.b>this->fade_color.b) ? -1 : +1); }
 }
 
-void _CYZ_RGB_pulse(void* instance) {
-	Cyz_rgb* cyz_rgb = ((Cyz_rgb*)instance);
-	if (++cyz_rgb->pulse_count == 0) { RED_LED_ON; GRN_LED_ON; BLU_LED_ON; }
-	if (cyz_rgb->pulse_count == cyz_rgb->color.r) RED_LED_OFF;
-	if (cyz_rgb->pulse_count == cyz_rgb->color.g) GRN_LED_OFF;
-	if (cyz_rgb->pulse_count == cyz_rgb->color.b) BLU_LED_OFF;
-	if (cyz_rgb->pulse_count == 0) {
-		_CYZ_RGB_fade_step(cyz_rgb);
+void _CYZ_RGB_pulse(Cyz_rgb* this) {
+	if (++this->pulse_count == 0) { RED_LED_ON; GRN_LED_ON; BLU_LED_ON; }
+	if (this->pulse_count == this->color.r) RED_LED_OFF;
+	if (this->pulse_count == this->color.g) GRN_LED_OFF;
+	if (this->pulse_count == this->color.b) BLU_LED_OFF;
+	if (this->pulse_count == 0 && this->fade) {
+		__CYZ_RGB_fade_step(this);
 	}
 }
 
-/* to be called only one time, usually in main */
-/* Configures initial color and DDR: put pins connected to leds in output mode */
 Cyz_rgb* CYZ_RGB_GET_INSTANCE() {
 	 Cyz_rgb* instance = (Cyz_rgb*) malloc(sizeof(struct CYZ_RGB));
 	 instance->init = _CYZ_RGB_init;
-	 instance->set_color = _CYZ_RGB_set_instance_color;
-	 instance->set_fade_color = _CYZ_RGB_set_instance_fade_color;
+	 instance->set_color = (void*)_CYZ_RGB_set_color;
+	 instance->set_fade_color = (void*)_CYZ_RGB_set_fade_color;
 	 instance->pulse_count = 0xFF;
+	 instance->fade = 0;
+	 instance->pulse = (void*)_CYZ_RGB_pulse;
 	 return instance;
 }
