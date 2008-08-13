@@ -11,6 +11,7 @@
 
 #define CMD_GO_TO_RGB 'n'
 #define CMD_FADE_TO_RGB 'c'
+#define CMD_WRITE_SCRIPT_LINE 'W'
 
 typedef struct _script_line {
     unsigned char dur;
@@ -24,6 +25,7 @@ typedef struct CYZ_CMD {
 	Cyz_rgb* cyz_rgb;
 	void (*execute)(void* this, unsigned char* buf);
 	void (*receive_one_byte)(void* this, unsigned char rcv);
+	script_line* script[49];
 } Cyz_cmd;
 
 Cyz_cmd* CYZ_CMD_GET_INSTANCE(Cyz_rgb* cyz_rgb);

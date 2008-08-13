@@ -26,7 +26,7 @@ int main(void)
 
 	for(;;)
 	{
-		if(usiTwiDataInReceiveBuffer()) {
+		while(usiTwiDataInReceiveBuffer()) {
 			cyz_cmd->receive_one_byte(cyz_cmd, usiTwiReceiveByte());
 		}
 	}

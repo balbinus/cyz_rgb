@@ -17,9 +17,12 @@ unsigned char CYZ_CMF_get_cmd_len (char cmd) {
 			return 4;
 		case CMD_FADE_TO_RGB:
 			return 4;
+		case CMD_WRITE_SCRIPT_LINE:
+			return 8;
 	}
 	return 0xFF;
 }
+
 
 void _CYZ_CMD_execute(Cyz_cmd *this, unsigned char* cmd) {
 	switch (cmd[0]) {
@@ -28,6 +31,19 @@ void _CYZ_CMD_execute(Cyz_cmd *this, unsigned char* cmd) {
 		break;
 		case CMD_FADE_TO_RGB:
 			this->cyz_rgb->set_fade_color(this->cyz_rgb, cmd[1], cmd[2], cmd[3]);
+		break;
+		case CMD_WRITE_SCRIPT_LINE:
+		{
+			//TODO: cmd[1] (script id) is ignored, only one script can be written
+			script_line* line = (script_line*) malloc(sizeof(struct _script_line));
+			line->dur = cmd[3];
+			line->cmd[0] = cmd[4];
+			line->cmd[1] = cmd[5];
+			line->cmd[2] = cmd[6];
+			line->cmd[3] = cmd[7];
+			this->script[cmd[2]] = line;
+		}
+
 		break;
 	}
 }
