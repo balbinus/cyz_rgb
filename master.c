@@ -1,11 +1,12 @@
 #include <avr/interrupt.h>
-#include "cyz/cyz_rgb.h"
 #include "cyz/cyz_cmd.h"
+#include "cyz/cyz_rgb.h"
 
 #define TWI_GEN_CALL         0x00
 #include "usiTwi/usiTwiMaster.h"
 
 Cyz_rgb* cyz_rgb;
+Cyz_cmd* cyz_cmd;
 
 script_line line1;
 script_line line2;
@@ -13,6 +14,9 @@ script_line line2;
 int main(void) {
 	cyz_rgb = CYZ_RGB_GET_INSTANCE();
 	cyz_rgb->init();
+
+	cyz_cmd = CYZ_CMD_GET_INSTANCE(cyz_rgb);
+
 	cyz_rgb->set_color(cyz_rgb, 255,125,50);
 
 	USI_TWI_Master_Initialise();
@@ -91,13 +95,9 @@ ISR(SIG_OVERFLOW0)
 	static unsigned int outercount = 0;
 	static unsigned int sigcount = -1;
 	if (++sigcount == 0) { //TODO: better to use another clock, prescaled
-
-
-
-		// TODO: learn to predict how long beteen each overflow
+		// TODO: learn to predict how long between each overflow
 		cyz_master_send_color();
-
-		CYZ_CMD_play_script_line(cyz_rgb, (++outercount%2==0) ? &line1 : &line2);
+		cyz_cmd->execute(cyz_cmd, (++outercount%2==0) ? line1.cmd : line2.cmd);
 	}
 
 	cyz_rgb->pulse(cyz_rgb);

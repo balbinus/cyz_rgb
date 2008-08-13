@@ -6,12 +6,15 @@ unsigned char cyz_slaveAddress;
 
 
 Cyz_rgb* cyz_rgb;
+Cyz_cmd* cyz_cmd;
 
 int main(void)
 {
 	cyz_rgb = CYZ_RGB_GET_INSTANCE();
 	cyz_rgb->init();
 	cyz_rgb->set_color(cyz_rgb, 255,125,50);
+
+	cyz_cmd = CYZ_CMD_GET_INSTANCE(cyz_rgb);
 
 	cyz_slaveAddress = 0x26;		// This can be changed to your own address
 	usiTwiSlaveInit(cyz_slaveAddress);
@@ -24,7 +27,7 @@ int main(void)
 	for(;;)
 	{
 		if(usiTwiDataInReceiveBuffer()) {
-			CYZ_CMD_receive_and_execute(cyz_rgb, usiTwiReceiveByte());
+			cyz_cmd->receive_one_byte(cyz_cmd, usiTwiReceiveByte());
 		}
 	}
 
@@ -33,6 +36,8 @@ int main(void)
 
 
 /*	Triggered when timer overflows. */
+/*  This runs fast enough that 255 calls are less than a glimpse for a human. */
+/*  TODO: figure out _actual_ math */
 ISR(SIG_OVERFLOW0)
 {
 	cyz_rgb->pulse(cyz_rgb);

@@ -3,6 +3,22 @@ RM := rm -rf
 # All Target
 all:  clean out/master.hex out/slave.hex
 
+#cyz_cmd
+out/cyz_cmd.o: out/cyz_rgb.o
+	@echo 'Building file: $<'
+	@echo 'Invoking: AVR Compiler'
+	avr-gcc -Wall -Os -fpack-struct -fshort-enums -funsigned-char -funsigned-bitfields -mmcu=attiny45 -DF_CPU=1000000UL -MMD -MP -MF"out/cyz_cmd.d" -MT"out/cyz_cmd.d" -c -o"out/cyz_cmd.o" "../cyz/cyz_cmd.c"
+	@echo 'Finished building: $<'
+	@echo ' '
+	
+#cyz_rgb
+out/cyz_rgb.o:
+	@echo 'Building file: $<'
+	@echo 'Invoking: AVR Compiler'
+	avr-gcc -Wall -Os -fpack-struct -fshort-enums -funsigned-char -funsigned-bitfields -mmcu=attiny45 -DF_CPU=1000000UL -MMD -MP -MF"out/cyz_rgb.d" -MT"out/cyz_rgb.d" -c -o"out/cyz_rgb.o" "../cyz/cyz_cmd.c"
+	@echo 'Finished building: $<'
+	@echo ' '
+	
 # Master-mode Firmware
 out/master.hex: out/master.elf sizedummy-master
 	@echo 'Create Flash image (ihex format)'
@@ -16,10 +32,10 @@ sizedummy-master: out/master.elf
 	@echo 'Finished building: $@'
 	@echo ' '
 
-out/master.elf: out/master.o out/usiTwiMaster.o
+out/master.elf: out/master.o out/usiTwiMaster.o out/cyz_cmd.o out/cyz_rgb.o
 	@echo 'Building target: $@'
 	@echo 'Invoking: AVR C Linker'
-	avr-gcc -Wl,-Map,out/master.map -L/opt/local/avr/include -mmcu=attiny45 -o"out/master.elf"  out/master.o  out/usiTwiMaster.o   
+	avr-gcc -Wl,-Map,out/master.map -L/opt/local/avr/include -mmcu=attiny45 -o"out/master.elf"  out/master.o  out/usiTwiMaster.o  out/cyz_cmd.o out/cyz_rgb.o
 	@echo 'Finished building target: $@'
 	@echo ' '
 
