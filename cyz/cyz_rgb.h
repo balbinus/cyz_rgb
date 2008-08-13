@@ -81,4 +81,8 @@ typedef struct CYZ_RGB {
 
 
 Cyz_rgb* CYZ_RGB_GET_INSTANCE();
+void _CYZ_RGB_init();
+void _CYZ_RGB_set_color(Cyz_rgb* this, unsigned char r, unsigned char g, unsigned char b);
+void _CYZ_RGB_set_fade_color(Cyz_rgb* this, unsigned char r, unsigned char g, unsigned char b);
+void _CYZ_RGB_pulse(Cyz_rgb* this);
 #endif

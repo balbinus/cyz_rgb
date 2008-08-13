@@ -24,10 +24,10 @@ unsigned char CYZ_CMF_get_cmd_len (char cmd) {
 void _CYZ_CMD_execute(Cyz_cmd *this, unsigned char* cmd) {
 	switch (cmd[0]) {
 		case CMD_GO_TO_RGB:
-			this->cyz_rgb->set_color(this->cyz_rgb, CYZ_CMD_rcv_buf[1], CYZ_CMD_rcv_buf[2] , CYZ_CMD_rcv_buf[3]);
+			this->cyz_rgb->set_color(this->cyz_rgb, cmd[1], cmd[2] , cmd[3]);
 		break;
 		case CMD_FADE_TO_RGB:
-			this->cyz_rgb->set_fade_color(this->cyz_rgb, CYZ_CMD_rcv_buf[1],CYZ_CMD_rcv_buf[2],CYZ_CMD_rcv_buf[3]);
+			this->cyz_rgb->set_fade_color(this->cyz_rgb, cmd[1], cmd[2], cmd[3]);
 		break;
 	}
 }

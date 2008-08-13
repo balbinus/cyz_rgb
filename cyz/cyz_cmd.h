@@ -12,10 +12,6 @@
 #define CMD_GO_TO_RGB 'n'
 #define CMD_FADE_TO_RGB 'c'
 
-unsigned char CYZ_CMD_rcv_buf[8];
-unsigned char CYZ_CMD_rcv_cnt = 0;
-unsigned char CYZ_CMD_current_cmd_len = 0xFF;
-
 typedef struct _script_line {
     unsigned char dur;
     unsigned char cmd[4];    // cmd,arg1,arg2,arg3

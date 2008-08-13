@@ -28,13 +28,15 @@ void __CYZ_RGB_fade_step(Cyz_rgb* this) {
 }
 
 void _CYZ_RGB_pulse(Cyz_rgb* this) {
-	if (++this->pulse_count == 0) { RED_LED_ON; GRN_LED_ON; BLU_LED_ON; }
+	if (++this->pulse_count == 0) {
+		RED_LED_ON; GRN_LED_ON; BLU_LED_ON;
+		if(this->fade==1) {
+			__CYZ_RGB_fade_step(this);
+		}
+	}
 	if (this->pulse_count == this->color.r) RED_LED_OFF;
 	if (this->pulse_count == this->color.g) GRN_LED_OFF;
 	if (this->pulse_count == this->color.b) BLU_LED_OFF;
-	if (this->pulse_count == 0 && this->fade) {
-		__CYZ_RGB_fade_step(this);
-	}
 }
 
 Cyz_rgb* CYZ_RGB_GET_INSTANCE() {
