@@ -5,6 +5,12 @@ Cyz_cmd* CYZ_CMD_GET_INSTANCE(Cyz_rgb* cyz_rgb) {
 	 instance->cyz_rgb = cyz_rgb;
 	 instance->execute = (void*)_CYZ_CMD_execute;
 	 instance->receive_one_byte = (void*)_CYZ_CMD_receive_one_byte;
+	 instance->play_next_script_line = (void*)_CYZ_CMD_play_next_script_line;
+	 instance->play_script = 0;
+	 instance->script_end = 0;
+	 instance->script_pos = 0;
+	 instance->script_repeats = 0;
+	 instance->script_repeated = 0;
 	 return instance;
 }
 
@@ -19,6 +25,8 @@ unsigned char CYZ_CMF_get_cmd_len (char cmd) {
 			return 4;
 		case CMD_WRITE_SCRIPT_LINE:
 			return 8;
+		case CMD_PLAY_LIGHT_SCRIPT:
+			return 3;
 	}
 	return 0xFF;
 }
@@ -42,9 +50,34 @@ void _CYZ_CMD_execute(Cyz_cmd *this, unsigned char* cmd) {
 			line->cmd[2] = cmd[6];
 			line->cmd[3] = cmd[7];
 			this->script[cmd[2]] = line;
-		}
 
+			if (cmd[2] > this->script_end) {
+				this->script_end = cmd[2];
+			}
+		}
 		break;
+		case CMD_PLAY_LIGHT_SCRIPT:
+			this->play_script = 1;
+			//cmd[1] is script number, currently ignore, we only play script 0
+			this->script_repeats = cmd[2];
+			this->script_pos = cmd[3];
+		break;
+	}
+}
+
+/* to be invoked inside a timer, every time its called plays next script line, */
+/* if script is playing and there are more lines to play */
+void _CYZ_CMD_play_next_script_line(Cyz_cmd *this) {
+	if (this->play_script == 1) {
+		this->execute(this, this->script[this->script_pos++]->cmd);
+		if (this->script_pos > this->script_end) {
+			this->script_pos = 0;
+			this->script_repeated++;
+			if (this->script_repeats > 0 && this->script_repeated >= this->script_repeats){
+				this->play_script = 0;
+				this->script_repeated = 0;
+			}
+		}
 	}
 }
 

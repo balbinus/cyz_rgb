@@ -33,7 +33,7 @@ int main(void) {
 		line1.cmd[2] = 0;
 		line1.cmd[3] = 0;
 	 */
-	unsigned char line1[8]; //= { 'W', 0, 0, 255, 'c', 0, 0, 255 };
+	unsigned char line1[8];// = { 'W', 0, 0, 255, 'c', 0, 0, 255 };
 	line1[0] = 'W';
 	line1[1] = 0;
 	line1[2] = 0;
@@ -42,7 +42,7 @@ int main(void) {
 	line1[5] = 0;
 	line1[6] = 0;
 	line1[7] = 255;
-	unsigned char line2[8];// = { 'W', 0, 0, 255, 'c', 0, 0, 255 };
+	unsigned char line2[8];// = { 'W', 0, 1, 255, 'c', 0, 255, 0 };
 	line2[0] = 'W';
 	line2[1] = 0;
 	line2[2] = 1;
@@ -51,6 +51,7 @@ int main(void) {
 	line2[5] = 255;
 	line2[6] = 0;
 	line2[7] = 0;
+
 	unsigned char line3[8];// = { 'W', 0, 0, 255, 'c', 0, 0, 255 };
 	line3[0] = 'W';
 	line3[1] = 0;
@@ -61,9 +62,16 @@ int main(void) {
 	line3[6] = 255;
 	line3[7] = 0;
 
+	unsigned char play[4];
+	play[0] = 'p';
+	play[1] = 0;
+	play[2] = 0;
+	play[3] = 0;
 	cyz_cmd->execute(cyz_cmd, line1);
 	cyz_cmd->execute(cyz_cmd, line2);
 	cyz_cmd->execute(cyz_cmd, line3);
+	cyz_cmd->execute(cyz_cmd, play);
+
 	/*
 	line2.dur = 255;
 		line2.cmd[0] = 'c';
@@ -131,7 +139,7 @@ ISR(SIG_OVERFLOW0)
 	if (++sigcount == 0) { //TODO: better to use another clock, prescaled
 		// TODO: learn to predict how long between each overflow
 		cyz_master_send_color();
-		cyz_cmd->execute(cyz_cmd, cyz_cmd->script[++outercount%3]->cmd);
+		cyz_cmd->play_next_script_line(cyz_cmd);
 	}
 
 	cyz_rgb->pulse(cyz_rgb);
