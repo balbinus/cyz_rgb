@@ -25,6 +25,8 @@ unsigned char CYZ_CMD_get_cmd_len (char cmd) {
 			return 8;
 		case CMD_PLAY_LIGHT_SCRIPT:
 			return 4;
+		case CMD_STOP_SCRIPT:
+			return 1;
 	}
 	return 0xFF;
 }
@@ -54,11 +56,13 @@ void _CYZ_CMD_execute(unsigned char* cmd) {
 		}
 		break;
 		case CMD_PLAY_LIGHT_SCRIPT:
-
 			//cmd[1] is script number, currently ignore, we only play script 0
 			cyz_cmd.script_repeats = cmd[2];
 			cyz_cmd.script_pos = cmd[3];
 			cyz_cmd.play_script = 1;
+		break;
+		case CMD_STOP_SCRIPT:
+			cyz_cmd.play_script = 0;
 		break;
 	}
 }

@@ -207,12 +207,16 @@ void cyz_master_send_color() {
 
 ISR(SIG_OVERFLOW0)
 {
-	static unsigned int outercount = 0;
+	static unsigned char outercount = 0;
 	static unsigned int sigcount = -1;
 	if (++sigcount == 0) { //TODO: better to use another clock, prescaled
 		// TODO: learn to predict how long between each overflow
 		cyz_master_send_color();
 		_CYZ_CMD_play_next_script_line();
+		if(++outercount==20) {
+			unsigned char stop[1] = {'o'};
+			_CYZ_CMD_execute(stop);
+		}
 	}
 
 	_CYZ_RGB_pulse();

@@ -13,6 +13,7 @@
 #define CMD_FADE_TO_RGB 'c'
 #define CMD_WRITE_SCRIPT_LINE 'W'
 #define CMD_PLAY_LIGHT_SCRIPT 'p'
+#define CMD_STOP_SCRIPT 'o'
 
 #define MAX_SCRIPT_LEN 10
 
