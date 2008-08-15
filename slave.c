@@ -10,24 +10,22 @@ Cyz_cmd* cyz_cmd;
 
 int main(void)
 {
-	cyz_rgb = CYZ_RGB_GET_INSTANCE();
-	cyz_rgb->init();
-	cyz_rgb->set_color(cyz_rgb, 255,125,50);
+	CYZ_RGB_GET_INSTANCE();
+	CYZ_CMD_GET_INSTANCE();
 
-	cyz_cmd = CYZ_CMD_GET_INSTANCE(cyz_rgb);
-
+	_CYZ_RGB_set_color(255,0,0);
 	cyz_slaveAddress = 0x26;		// This can be changed to your own address
 	usiTwiSlaveInit(cyz_slaveAddress);
 
 	TIFR   = (1 << TOV0);  /* clear interrupt flag */
-  	TIMSK  = (1 << TOIE0); /* enable overflow interrupt */
+	TIMSK  = (1 << TOIE0); /* enable overflow interrupt */
 	TCCR0B = (1 << CS00);  /* start timer, no prescale */
 	sei(); // enable interrupts
 
 	for(;;)
 	{
 		while(usiTwiDataInReceiveBuffer()) {
-			cyz_cmd->receive_one_byte(cyz_cmd, usiTwiReceiveByte());
+			_CYZ_CMD_receive_one_byte(usiTwiReceiveByte());
 		}
 	}
 
@@ -40,7 +38,12 @@ int main(void)
 /*  TODO: figure out _actual_ math */
 ISR(SIG_OVERFLOW0)
 {
-	cyz_rgb->pulse(cyz_rgb);
+	static unsigned int sigcount = -1;
+	if (++sigcount == 0) { //TODO: better to use another clock, prescaled
+		_CYZ_CMD_play_next_script_line();
+	}
+
+	_CYZ_RGB_pulse();
 }
 
 

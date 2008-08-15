@@ -66,13 +66,7 @@ typedef struct _color {
 	unsigned char b;
 } Color;
 
-//TODO: i can't declare pointer to functions with Cyz_rgb* in the signature, have to fallback to void* and cas on assignment.
-// it seems that Cyz_rgb does not exist yet.
 typedef struct CYZ_RGB {
-	void (*init)();
-	void (*set_color)(void* cyz_rgb, unsigned char r, unsigned char g, unsigned char b);
-	void (*set_fade_color)(void* cyz_rgb, unsigned char r, unsigned char g, unsigned char b);
-	void (*pulse)(void* cyz_rgb);
 	unsigned char pulse_count;
 	unsigned char fade;
 	Color color;
@@ -80,9 +74,11 @@ typedef struct CYZ_RGB {
 } Cyz_rgb;
 
 
-Cyz_rgb* CYZ_RGB_GET_INSTANCE();
+void CYZ_RGB_GET_INSTANCE();
 void _CYZ_RGB_init();
-void _CYZ_RGB_set_color(Cyz_rgb* this, unsigned char r, unsigned char g, unsigned char b);
-void _CYZ_RGB_set_fade_color(Cyz_rgb* this, unsigned char r, unsigned char g, unsigned char b);
-void _CYZ_RGB_pulse(Cyz_rgb* this);
+void _CYZ_RGB_set_color(unsigned char r, unsigned char g, unsigned char b);
+void _CYZ_RGB_set_fade_color(unsigned char r, unsigned char g, unsigned char b);
+void _CYZ_RGB_pulse();
+Cyz_rgb* _CYZ_RGB_get();
+
 #endif
