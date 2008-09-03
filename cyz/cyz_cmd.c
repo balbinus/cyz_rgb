@@ -1,10 +1,8 @@
 #include "cyz_cmd.h"
 #include <avr/eeprom.h>
 
-
-boot_parms temp;
-boot_parms xtemp;
-
+boot_parms EEMEM EEbbotp;
+script_line EEMEM EEscript[MAX_SCRIPT_LEN];
 Cyz_cmd cyz_cmd;
 
 void CYZ_CMD_GET_INSTANCE() {
@@ -53,14 +51,19 @@ void _CYZ_CMD_execute(uint8_t* cmd) {
 		if (cmd[2] > MAX_SCRIPT_LEN-1)
 			break;
 		//TODO: cmd[1] (script id) is ignored, only one script can be written
-		cyz_cmd.script[cmd[2]].dur = cmd[3];
-		cyz_cmd.script[cmd[2]].cmd[0] = cmd[4];
-		cyz_cmd.script[cmd[2]].cmd[1] = cmd[5];
-		cyz_cmd.script[cmd[2]].cmd[2] = cmd[6];
-		cyz_cmd.script[cmd[2]].cmd[3] = cmd[7];
+		// cmd[2] is line number
 		if (cmd[2] > cyz_cmd.script_end) {
 			cyz_cmd.script_end = cmd[2];
 		}
+		script_line tmp;
+		tmp.dur = cmd[3];
+		tmp.cmd[0] = cmd[4];
+		tmp.cmd[1] = cmd[5];
+		tmp.cmd[2] = cmd[6];
+		tmp.cmd[3] = cmd[7];
+
+		eeprom_busy_wait();
+		eeprom_write_block((void*)&tmp,(void*)&EEscript[cmd[2]], 5);
 	}
 	break;
 	case CMD_PLAY_LIGHT_SCRIPT:
@@ -74,14 +77,15 @@ void _CYZ_CMD_execute(uint8_t* cmd) {
 		break;
 	case CMD_SET_BOOT_PARMS:
 	{
+		boot_parms temp;
 		temp.magic = CYZ_CMD_BOOTP_MAGIC;
 		temp.mode = cmd[1];
-		temp.repeats = 0;
-		temp.scriptno = 0;
-		temp.fadespeed = 0;
-		temp.timeadjust = 0;
+		temp.repeats = cmd[2];
+		temp.scriptno = cmd[3];
+		temp.fadespeed = cmd[4];
+		temp.timeadjust = cmd[5];
 		eeprom_busy_wait();
-		eeprom_write_block( (void*)&temp,(void*)30, sizeof(boot_parms));
+		eeprom_write_block( (void*)&temp,(void*)&EEbbotp, sizeof(boot_parms));
 	}
 	break;
 	}
@@ -90,10 +94,14 @@ void _CYZ_CMD_execute(uint8_t* cmd) {
 void CYZ_CMD_load_boot_params() {
 	boot_parms temp;
 	eeprom_busy_wait();
-	eeprom_read_block((void*)&temp, (const void*)30, sizeof(boot_parms));
+	eeprom_read_block((void*)&temp, (const void*)&EEbbotp, sizeof(boot_parms));
 	if (temp.magic == CYZ_CMD_BOOTP_MAGIC) {
 		if (temp.mode == 1) {
-			cyz_cmd.play_script = 1;
+			cyz_cmd.play_script = temp.mode;
+			cyz_cmd.script_repeats = temp.repeats;
+			//cyz_cmd.sciptno = temp.scriptno;
+			//cyz_cmd.fadespedd = temp.fadespeed;
+			//cyz_cmd.timeadjust = temp.timeadjiust;
 		}
 	}
 }
@@ -102,7 +110,11 @@ void CYZ_CMD_load_boot_params() {
 /* if script is playing and there are more lines to play */
 void _CYZ_CMD_play_next_script_line() {
 	if (cyz_cmd.play_script == 1) {
-		_CYZ_CMD_execute(cyz_cmd.script[cyz_cmd.script_pos++].cmd);
+		script_line tmp;
+		eeprom_busy_wait();
+		eeprom_read_block((void*)&tmp, (const void*)&EEscript[cyz_cmd.script_pos++], 5);
+		_CYZ_CMD_execute(tmp.cmd);
+		//_CYZ_CMD_execute(cyz_cmd.script[cyz_cmd.script_pos++].cmd);
 		if (cyz_cmd.script_pos > cyz_cmd.script_end) {
 			cyz_cmd.script_pos = 0;
 			cyz_cmd.script_repeated++;

@@ -1,4 +1,4 @@
-#Wed Aug 13 19:29:24 BST 2008
+#Wed Sep 03 13:53:18 BST 2008
 avrtarget/ClockFrequency=1000000
 avrtarget/ExtRAMSize=0
 avrtarget/ExtendedRAM=false
@@ -51,8 +51,8 @@ avrtarget/de.innot.avreclipse.configuration.app.release.1716721803.2067542940/Us
 avrtarget/de.innot.avreclipse.configuration.app.release.1716721803.2067542940/UseExtendedRAMforHeap=true
 avrtarget/de.innot.avreclipse.configuration.app.release.1716721803.2067542940/avrdude/BitBangDelay=
 avrtarget/de.innot.avreclipse.configuration.app.release.1716721803.2067542940/avrdude/Bitclock=
-avrtarget/de.innot.avreclipse.configuration.app.release.1716721803.2067542940/avrdude/EEPROMFile=
-avrtarget/de.innot.avreclipse.configuration.app.release.1716721803.2067542940/avrdude/EEPROMFromConfig=true
+avrtarget/de.innot.avreclipse.configuration.app.release.1716721803.2067542940/avrdude/EEPROMFile=${workspace_loc\:/cyz_rgb/make/out/master.eep}
+avrtarget/de.innot.avreclipse.configuration.app.release.1716721803.2067542940/avrdude/EEPROMFromConfig=false
 avrtarget/de.innot.avreclipse.configuration.app.release.1716721803.2067542940/avrdude/FlashFile=${workspace_loc\:/cyz_rgb/make/out/master.hex}
 avrtarget/de.innot.avreclipse.configuration.app.release.1716721803.2067542940/avrdude/FlashFromConfig=false
 avrtarget/de.innot.avreclipse.configuration.app.release.1716721803.2067542940/avrdude/NoSigCheck=false
