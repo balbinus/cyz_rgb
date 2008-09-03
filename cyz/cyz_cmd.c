@@ -1,11 +1,13 @@
 #include "cyz_cmd.h"
 #include <avr/eeprom.h>
+#include "cyz_rgb.h"
 
 boot_parms EEMEM EEbbotp;
 script_line EEMEM EEscript[MAX_SCRIPT_LEN];
 Cyz_cmd cyz_cmd;
 
-void CYZ_CMD_GET_INSTANCE() {
+void CYZ_CMD_GET_INSTANCE(Cyz_rgb* cyz_rgb) {
+	cyz_cmd.cyz_rgb = cyz_rgb;
 	cyz_cmd.rcv_cmd_buf_cnt = 0;
 	cyz_cmd.rcv_cmd_len = 0xFF;
 	cyz_cmd.play_script = 0;
@@ -87,6 +89,11 @@ void _CYZ_CMD_execute(uint8_t* cmd) {
 		eeprom_busy_wait();
 		eeprom_write_block( (void*)&temp,(void*)&EEbbotp, sizeof(boot_parms));
 	}
+	case CMD_SET_FADESPEED:
+		if (cmd[1] != 0) {
+			cyz_cmd.cyz_rgb->fadespeed = cmd[1];
+		}
+	break;
 	break;
 	}
 }
@@ -99,9 +106,11 @@ void CYZ_CMD_load_boot_params() {
 		if (temp.mode == 1) {
 			cyz_cmd.play_script = temp.mode;
 			cyz_cmd.script_repeats = temp.repeats;
-			//cyz_cmd.sciptno = temp.scriptno;
-			//cyz_cmd.fadespedd = temp.fadespeed;
+			if (temp.fadespeed != 0) {
+				cyz_cmd.cyz_rgb->fadespeed = temp.fadespeed;
+			}
 			//cyz_cmd.timeadjust = temp.timeadjiust;
+			//cyz_cmd.sciptno = temp.scriptno;
 		}
 	}
 }
@@ -110,6 +119,7 @@ void CYZ_CMD_load_boot_params() {
 /* if script is playing and there are more lines to play */
 void _CYZ_CMD_play_next_script_line() {
 	if (cyz_cmd.play_script == 1) {
+		//TODO: load lines in memory only once
 		script_line tmp;
 		eeprom_busy_wait();
 		eeprom_read_block((void*)&tmp, (const void*)&EEscript[cyz_cmd.script_pos++], 5);

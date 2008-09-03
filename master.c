@@ -6,8 +6,7 @@
 #include "usiTwi/usiTwiMaster.h"
 
 int main(void) {
-	CYZ_RGB_GET_INSTANCE();
-	CYZ_CMD_GET_INSTANCE();
+	CYZ_CMD_GET_INSTANCE(CYZ_RGB_GET_INSTANCE());
 
 	_CYZ_RGB_set_color(255,125,50);
 
@@ -158,7 +157,7 @@ int main(void) {
 		bootdo[1] = 1;
 		bootdo[2] = 0;
 		bootdo[3] = 0;
-		bootdo[4] = 0;
+		bootdo[4] = 150;
 		bootdo[5] = 0;
 		for (i=0;i<6;i++) {
 			_CYZ_CMD_receive_one_byte(bootdo[i]);
@@ -185,6 +184,7 @@ void cyz_master_send_color() {
 	if (!success) {
 		USI_TWI_Master_Initialise();
 
+		/*
 		switch(USI_TWI_Get_State_Info( )) {
 
 		case USI_TWI_NO_DATA:             // Transmission buffer is empty
@@ -215,6 +215,7 @@ void cyz_master_send_color() {
 			//CYZ_RGB_set_color(0, 0 , 50);
 			break;
 		}
+		*/
 	}
 }
 
@@ -226,6 +227,8 @@ ISR(SIG_OVERFLOW0)
 	static unsigned int sigcount = -1;
 	if (++sigcount == 0) { //TODO: better to use another clock, prescaled
 		// TODO: learn to predict how long between each overflow
+
+		//ATTENTION: this instruction causes a short but visible flicker in lights
 		cyz_master_send_color();
 		_CYZ_CMD_play_next_script_line();
 		if(++outercount==20) {

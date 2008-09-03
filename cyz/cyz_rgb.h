@@ -69,12 +69,13 @@ typedef struct _color {
 typedef struct CYZ_RGB {
 	unsigned char pulse_count;
 	unsigned char fade;
+	unsigned char fadespeed;
 	Color color;
 	Color fade_color;
 } Cyz_rgb;
 
 
-void CYZ_RGB_GET_INSTANCE();
+Cyz_rgb* CYZ_RGB_GET_INSTANCE();
 void _CYZ_RGB_init();
 void _CYZ_RGB_set_color(unsigned char r, unsigned char g, unsigned char b);
 void _CYZ_RGB_set_fade_color(unsigned char r, unsigned char g, unsigned char b);

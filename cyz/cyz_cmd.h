@@ -15,6 +15,7 @@
 #define CMD_PLAY_LIGHT_SCRIPT 'p'
 #define CMD_STOP_SCRIPT 'o'
 #define CMD_SET_BOOT_PARMS 'B'
+#define CMD_SET_FADESPEED 'f'
 
 #define MAX_SCRIPT_LEN 10
 
@@ -47,7 +48,7 @@ typedef struct CYZ_CMD {
 
 
 
-void CYZ_CMD_GET_INSTANCE();
+void CYZ_CMD_GET_INSTANCE(Cyz_rgb* cyz_rgb);
 void _CYZ_CMD_execute(uint8_t* cmd);
 void _CYZ_CMD_receive_one_byte(uint8_t in);
 void _CYZ_CMD_play_next_script_line();
