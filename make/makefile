@@ -20,15 +20,18 @@ out/cyz_rgb.o:
 	@echo ' '
 	
 # Master-mode Firmware
-out/master.hex: out/master.elf sizedummy-master
+out/master.hex: out/master.elf out/master.eep sizedummy-master
 	@echo 'Create Flash image (ihex format)'
 	-avr-objcopy -R .eeprom -O ihex out/master.elf  "out/master.hex"
 	@echo 'Finished building: $@'
 	@echo ' '
+	
+out/master.eep: out/master.elf
+	-avr-objcopy -j .eeprom= -O ihex out/master.elf "out/master.eep"
 
 sizedummy-master: out/master.elf
 	@echo 'Invoking: Print Size'
-	-avr-size --format=avr --mcu=attiny45 out/master.elf
+	-avr-size --format=Berkeley  out/master.elf
 	@echo 'Finished building: $@'
 	@echo ' '
 
@@ -62,7 +65,7 @@ out/slave.hex: out/slave.elf sizedummy-slave
 
 sizedummy-slave: out/slave.elf
 	@echo 'Invoking: Print Size'
-	-avr-size --format=avr --mcu=attiny45 out/slave.elf
+	-avr-size --format=Berkeley  out/slave.elf
 	@echo 'Finished building: $@'
 	@echo ' '
 

@@ -14,6 +14,8 @@ int main(void)
 	CYZ_CMD_GET_INSTANCE();
 
 	_CYZ_RGB_set_color(255,0,0);
+	CYZ_CMD_load_boot_params();
+
 	cyz_slaveAddress = 0x26;		// This can be changed to your own address
 	usiTwiSlaveInit(cyz_slaveAddress);
 

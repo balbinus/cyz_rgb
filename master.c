@@ -142,6 +142,7 @@ int main(void) {
 			_CYZ_CMD_receive_one_byte(line1[i]);
 		}
 
+		/*
 		unsigned char play[4];
 		play[0] = 'p';
 		play[1] = 0;
@@ -150,6 +151,20 @@ int main(void) {
 		for(i=0;i<4;i++) {
 			_CYZ_CMD_receive_one_byte(play[i]);
 		}
+		*/
+
+		unsigned char bootdo[6];
+		bootdo[0] = 'B';
+		bootdo[1] = 1;
+		bootdo[2] = 0;
+		bootdo[3] = 0;
+		bootdo[4] = 0;
+		bootdo[5] = 0;
+		for (i=0;i<6;i++) {
+			_CYZ_CMD_receive_one_byte(bootdo[i]);
+		}
+
+		CYZ_CMD_load_boot_params();
 	}
 
 	for(;;)
