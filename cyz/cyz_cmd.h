@@ -16,6 +16,7 @@
 #define CMD_STOP_SCRIPT 'o'
 #define CMD_SET_BOOT_PARMS 'B'
 #define CMD_SET_FADESPEED 'f'
+#define CMD_SET_TIMEADJUST 't'
 
 #define MAX_SCRIPT_LEN 10
 
@@ -25,7 +26,7 @@ typedef struct _boot_parms {
 	uint8_t scriptno; // which script to play if mode==1
 	uint8_t repeats; // number of repetitions
 	uint8_t fadespeed;
-	uint8_t timeadjust;
+	int8_t timeadjust;
 } boot_parms;
 
 typedef struct _script_line {
@@ -44,6 +45,7 @@ typedef struct CYZ_CMD {
 	uint8_t script_pos;
 	uint8_t script_repeats;
 	uint8_t script_repeated;
+	uint8_t timeadjiust;
 } Cyz_cmd;
 
 
@@ -51,7 +53,7 @@ typedef struct CYZ_CMD {
 void CYZ_CMD_GET_INSTANCE(Cyz_rgb* cyz_rgb);
 void _CYZ_CMD_execute(uint8_t* cmd);
 void _CYZ_CMD_receive_one_byte(uint8_t in);
-uint8_t _CYZ_CMD_play_next_script_line();
+long _CYZ_CMD_play_next_script_line();
 void CYZ_CMD_load_boot_params();
 
 #endif

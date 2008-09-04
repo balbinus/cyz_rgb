@@ -15,6 +15,7 @@ void CYZ_CMD_GET_INSTANCE(Cyz_rgb* cyz_rgb) {
 	cyz_cmd.script_pos = 0;
 	cyz_cmd.script_repeats = 0;
 	cyz_cmd.script_repeated = 0;
+	cyz_cmd.timeadjiust = 0;
 }
 
 /* returns the length of the command, command+payload. */
@@ -34,7 +35,10 @@ uint8_t CYZ_CMD_get_cmd_len (char cmd) {
 		return 1;
 	case CMD_SET_BOOT_PARMS:
 		return 6;
-
+	case CMD_SET_TIMEADJUST:
+		return 1;
+	case CMD_SET_FADESPEED:
+		return 1;
 	}
 	return 0xFF;
 }
@@ -94,6 +98,8 @@ void _CYZ_CMD_execute(uint8_t* cmd) {
 			cyz_cmd.cyz_rgb->fadespeed = cmd[1];
 		}
 	break;
+	case CMD_SET_TIMEADJUST:
+		cyz_cmd.timeadjiust = cmd[1];
 	break;
 	}
 }
@@ -117,13 +123,12 @@ void CYZ_CMD_load_boot_params() {
 
 /* to be invoked inside a timer, every time its called plays next script line, */
 /* if script is playing and there are more lines to play */
-uint8_t _CYZ_CMD_play_next_script_line() {
+long _CYZ_CMD_play_next_script_line() {
 	if (cyz_cmd.play_script == 1) {
 		//TODO: load lines in memory only once
 		script_line tmp;
 		eeprom_busy_wait();
 		eeprom_read_block((void*)&tmp, (const void*)&EEscript[cyz_cmd.script_pos++], 5);
-		uint8_t duration = tmp.dur;
 		_CYZ_CMD_execute(tmp.cmd);
 		//_CYZ_CMD_execute(cyz_cmd.script[cyz_cmd.script_pos++].cmd);
 		if (cyz_cmd.script_pos > cyz_cmd.script_end) {
@@ -134,9 +139,10 @@ uint8_t _CYZ_CMD_play_next_script_line() {
 				cyz_cmd.script_repeated = 0;
 			}
 		}
-		return duration;
+
+		return tmp.dur + cyz_cmd.timeadjiust;
 	}
-	return 0;
+	return -1;
 }
 
 void _CYZ_CMD_receive_one_byte(uint8_t in) {
