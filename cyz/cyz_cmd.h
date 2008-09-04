@@ -17,6 +17,7 @@
 #define CMD_SET_BOOT_PARMS 'B'
 #define CMD_SET_FADESPEED 'f'
 #define CMD_SET_TIMEADJUST 't'
+#define CMD_SET_LEN_RPTS 'L'
 
 #define MAX_SCRIPT_LEN 10
 
@@ -41,11 +42,11 @@ typedef struct CYZ_CMD {
 	uint8_t rcv_cmd_buf_cnt;
 	uint8_t rcv_cmd_len;
 	uint8_t play_script;
-	uint8_t script_end;
+	uint8_t script_length;
 	uint8_t script_pos;
 	uint8_t script_repeats;
 	uint8_t script_repeated;
-	uint8_t timeadjiust;
+	uint8_t timeadjust;
 } Cyz_cmd;
 
 

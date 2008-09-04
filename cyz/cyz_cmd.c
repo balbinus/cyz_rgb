@@ -11,11 +11,11 @@ void CYZ_CMD_GET_INSTANCE(Cyz_rgb* cyz_rgb) {
 	cyz_cmd.rcv_cmd_buf_cnt = 0;
 	cyz_cmd.rcv_cmd_len = 0xFF;
 	cyz_cmd.play_script = 0;
-	cyz_cmd.script_end = 0;
+	cyz_cmd.script_length = 0;
 	cyz_cmd.script_pos = 0;
 	cyz_cmd.script_repeats = 0;
 	cyz_cmd.script_repeated = 0;
-	cyz_cmd.timeadjiust = 0;
+	cyz_cmd.timeadjust = 0;
 }
 
 /* returns the length of the command, command+payload. */
@@ -39,10 +39,11 @@ uint8_t CYZ_CMD_get_cmd_len (char cmd) {
 		return 1;
 	case CMD_SET_FADESPEED:
 		return 1;
+	case CMD_SET_LEN_RPTS:
+		return 4;
 	}
 	return 0xFF;
 }
-
 
 void _CYZ_CMD_execute(uint8_t* cmd) {
 	switch (cmd[0]) {
@@ -58,9 +59,6 @@ void _CYZ_CMD_execute(uint8_t* cmd) {
 			break;
 		//TODO: cmd[1] (script id) is ignored, only one script can be written
 		// cmd[2] is line number
-		if (cmd[2] > cyz_cmd.script_end) {
-			cyz_cmd.script_end = cmd[2];
-		}
 		script_line tmp;
 		tmp.dur = cmd[3];
 		tmp.cmd[0] = cmd[4];
@@ -99,7 +97,12 @@ void _CYZ_CMD_execute(uint8_t* cmd) {
 		}
 	break;
 	case CMD_SET_TIMEADJUST:
-		cyz_cmd.timeadjiust = cmd[1];
+		cyz_cmd.timeadjust = cmd[1];
+	break;
+	case CMD_SET_LEN_RPTS:
+		//cmd[1] is script number, currentrly ignored, can only set script 0
+		cyz_cmd.script_length = cmd[2];
+		cyz_cmd.script_repeats = cmd[3];
 	break;
 	}
 }
@@ -115,7 +118,7 @@ void CYZ_CMD_load_boot_params() {
 			if (temp.fadespeed != 0) {
 				cyz_cmd.cyz_rgb->fadespeed = temp.fadespeed;
 			}
-			//cyz_cmd.timeadjust = temp.timeadjiust;
+			cyz_cmd.timeadjust = temp.timeadjust;
 			//cyz_cmd.sciptno = temp.scriptno;
 		}
 	}
@@ -131,7 +134,7 @@ long _CYZ_CMD_play_next_script_line() {
 		eeprom_read_block((void*)&tmp, (const void*)&EEscript[cyz_cmd.script_pos++], 5);
 		_CYZ_CMD_execute(tmp.cmd);
 		//_CYZ_CMD_execute(cyz_cmd.script[cyz_cmd.script_pos++].cmd);
-		if (cyz_cmd.script_pos > cyz_cmd.script_end) {
+		if (cyz_cmd.script_pos == cyz_cmd.script_length) {
 			cyz_cmd.script_pos = 0;
 			cyz_cmd.script_repeated++;
 			if (cyz_cmd.script_repeats > 0 && cyz_cmd.script_repeated >= cyz_cmd.script_repeats){
@@ -140,7 +143,7 @@ long _CYZ_CMD_play_next_script_line() {
 			}
 		}
 
-		return tmp.dur + cyz_cmd.timeadjiust;
+		return tmp.dur + cyz_cmd.timeadjust;
 	}
 	return -1;
 }
