@@ -51,7 +51,7 @@ typedef struct CYZ_CMD {
 void CYZ_CMD_GET_INSTANCE(Cyz_rgb* cyz_rgb);
 void _CYZ_CMD_execute(uint8_t* cmd);
 void _CYZ_CMD_receive_one_byte(uint8_t in);
-void _CYZ_CMD_play_next_script_line();
+uint8_t _CYZ_CMD_play_next_script_line();
 void CYZ_CMD_load_boot_params();
 
 #endif

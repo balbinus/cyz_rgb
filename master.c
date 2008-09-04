@@ -1,6 +1,7 @@
 #include <avr/interrupt.h>
 #include "cyz/cyz_cmd.h"
 #include "cyz/cyz_rgb.h"
+#include <limits.h>
 
 #define TWI_GEN_CALL         0x00
 #include "usiTwi/usiTwiMaster.h"
@@ -72,7 +73,7 @@ int main(void) {
 		line1[0] = 'W';
 		line1[1] = 0;
 		line1[2] = 4;
-		line1[3] = 255;
+		line1[3] = 50;
 		line1[4] = 'c';
 		line1[5] = 0;
 		line1[6] = 0;
@@ -84,7 +85,7 @@ int main(void) {
 		line1[0] = 'W';
 		line1[1] = 0;
 		line1[2] = 5;
-		line1[3] = 255;
+		line1[3] = 50;
 		line1[4] = 'c';
 		line1[5] = 200;
 		line1[6] = 0;
@@ -96,7 +97,7 @@ int main(void) {
 		line1[0] = 'W';
 		line1[1] = 0;
 		line1[2] = 6;
-		line1[3] = 255;
+		line1[3] = 50;
 		line1[4] = 'c';
 		line1[5] = 100;
 		line1[6] = 0;
@@ -108,7 +109,7 @@ int main(void) {
 		line1[0] = 'W';
 		line1[1] = 0;
 		line1[2] = 7;
-		line1[3] = 255;
+		line1[3] = 50;
 		line1[4] = 'c';
 		line1[5] = 200;
 		line1[6] = 200;
@@ -120,7 +121,7 @@ int main(void) {
 		line1[0] = 'W';
 		line1[1] = 0;
 		line1[2] = 8;
-		line1[3] = 255;
+		line1[3] = 50;
 		line1[4] = 'c';
 		line1[5] = 0;
 		line1[6] = 200;
@@ -132,7 +133,7 @@ int main(void) {
 		line1[0] = 'W';
 		line1[1] = 0;
 		line1[2] = 9;
-		line1[3] = 255;
+		line1[3] = 50;
 		line1[4] = 'c';
 		line1[5] = 100;
 		line1[6] = 200;
@@ -220,20 +221,18 @@ void cyz_master_send_color() {
 }
 
 /*	Triggered when timer overflows. */
-
 ISR(SIG_OVERFLOW0)
 {
-	static unsigned char outercount = 0;
-	static unsigned int sigcount = -1;
+	static unsigned int sigcount = UINT_MAX;
 	if (++sigcount == 0) { //TODO: better to use another clock, prescaled
 		// TODO: learn to predict how long between each overflow
 
 		//ATTENTION: this instruction causes a short but visible flicker in lights
 		cyz_master_send_color();
-		_CYZ_CMD_play_next_script_line();
-		if(++outercount==20) {
-			unsigned char stop[1] = {'o'};
-			_CYZ_CMD_execute(stop);
+
+		uint8_t duration = _CYZ_CMD_play_next_script_line();
+		if (duration > 0 && duration < 255) {
+			sigcount += UINT_MAX - (duration * UINT_MAX/255);
 		}
 	}
 

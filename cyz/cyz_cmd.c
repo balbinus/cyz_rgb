@@ -117,12 +117,13 @@ void CYZ_CMD_load_boot_params() {
 
 /* to be invoked inside a timer, every time its called plays next script line, */
 /* if script is playing and there are more lines to play */
-void _CYZ_CMD_play_next_script_line() {
+uint8_t _CYZ_CMD_play_next_script_line() {
 	if (cyz_cmd.play_script == 1) {
 		//TODO: load lines in memory only once
 		script_line tmp;
 		eeprom_busy_wait();
 		eeprom_read_block((void*)&tmp, (const void*)&EEscript[cyz_cmd.script_pos++], 5);
+		uint8_t duration = tmp.dur;
 		_CYZ_CMD_execute(tmp.cmd);
 		//_CYZ_CMD_execute(cyz_cmd.script[cyz_cmd.script_pos++].cmd);
 		if (cyz_cmd.script_pos > cyz_cmd.script_end) {
@@ -133,7 +134,9 @@ void _CYZ_CMD_play_next_script_line() {
 				cyz_cmd.script_repeated = 0;
 			}
 		}
+		return duration;
 	}
+	return 0;
 }
 
 void _CYZ_CMD_receive_one_byte(uint8_t in) {
