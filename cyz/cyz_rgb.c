@@ -6,18 +6,49 @@ Cyz_rgb* _CYZ_RGB_get() {
 	return &cyz_rgb;
 }
 
-void _CYZ_RGB_set_color(unsigned char r, unsigned char g, unsigned char b) {
+void _CYZ_RGB_set_color(uint8_t r, uint8_t g, uint8_t b) {
 	cyz_rgb.fade = 0;
 	cyz_rgb.color.r = r;
 	cyz_rgb.color.g = g;
 	cyz_rgb.color.b = b;
 }
 
-void _CYZ_RGB_set_fade_color(unsigned char r, unsigned char g, unsigned char b) {
+void _CYZ_RGB_set_fade_color(uint8_t r, uint8_t g, uint8_t b) {
 	cyz_rgb.fade = 1;
 	cyz_rgb.fade_color.r = r;
 	cyz_rgb.fade_color.g = g;
 	cyz_rgb.fade_color.b = b;
+}
+
+/**
+ * Ripoff of this: http://www.tecgraf.puc-rio.br/~mgattass/color/HSVtoRGB.htm
+ * Modified to work with unsigned chars. Some precision is lost as intermediate values are scaled down by 16 to avoid char overflow.
+ * hsv to rgb conversion theory here: http://en.wikipedia.org/wiki/HSV_color_space#Conversion_from_HSV_to_RGB
+ *
+ * XXX: needs deeper understanding, and a rewrite
+ */
+void _CYZ_RGB_set_fade_color_hsb(uint8_t h, uint8_t s, uint8_t v)
+{
+	if ( s == 0 )
+	{
+		cyz_rgb.fade_color.r = v;
+		cyz_rgb.fade_color.g = v;
+		cyz_rgb.fade_color.b = v;
+	}
+	else
+	{
+		int var_i = (h/16) / 42;
+		int var_h = ((h*6)/16)%16;
+		int var_1 = v/16 * ( 16 - s/16 );
+		int var_2 = v/16 * ( 16 - ((s/16) * var_h)/16 );
+		int var_3 = v/16 * ( 16 - ((s/16) * (16-var_h))/16 );
+		if      ( var_i == 0 ) { cyz_rgb.fade_color.r = v     ; cyz_rgb.fade_color.g = var_3 ; cyz_rgb.fade_color.b = var_1; }
+		else if ( var_i == 1 ) { cyz_rgb.fade_color.r = var_2 ; cyz_rgb.fade_color.g = v     ; cyz_rgb.fade_color.b = var_1; }
+		else if ( var_i == 2 ) { cyz_rgb.fade_color.r = var_1 ; cyz_rgb.fade_color.g = v     ; cyz_rgb.fade_color.b = var_3; }
+		else if ( var_i == 3 ) { cyz_rgb.fade_color.r = var_1 ; cyz_rgb.fade_color.g = var_2 ; cyz_rgb.fade_color.b = v;     }
+		else if ( var_i == 4 ) { cyz_rgb.fade_color.r = var_3 ; cyz_rgb.fade_color.g = var_1 ; cyz_rgb.fade_color.b = v;     }
+		else                   { cyz_rgb.fade_color.r = v     ; cyz_rgb.fade_color.g = var_1 ; cyz_rgb.fade_color.b = var_2; }
+	}
 }
 
 #define MIN(a, b)  (((a) < (b)) ? (a) : (b))

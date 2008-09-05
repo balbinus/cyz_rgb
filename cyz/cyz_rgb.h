@@ -61,15 +61,15 @@
 #define BLU_LED_ON PWM_PORT |= 1<<PINBLU
 
 typedef struct _color {
-    unsigned char r;
-	unsigned char g;
-	unsigned char b;
+    uint8_t r;
+	uint8_t g;
+	uint8_t b;
 } Color;
 
 typedef struct CYZ_RGB {
-	unsigned char pulse_count;
-	unsigned char fade;
-	unsigned char fadespeed;
+	uint8_t pulse_count;
+	uint8_t fade;
+	uint8_t fadespeed;
 	Color color;
 	Color fade_color;
 } Cyz_rgb;
@@ -77,9 +77,12 @@ typedef struct CYZ_RGB {
 
 Cyz_rgb* CYZ_RGB_GET_INSTANCE();
 void _CYZ_RGB_init();
-void _CYZ_RGB_set_color(unsigned char r, unsigned char g, unsigned char b);
-void _CYZ_RGB_set_fade_color(unsigned char r, unsigned char g, unsigned char b);
+void _CYZ_RGB_set_color(uint8_t r, uint8_t g, uint8_t b);
+void _CYZ_RGB_set_fade_color(uint8_t r, uint8_t g, uint8_t b);
+void _CYZ_RGB_set_fade_color_hsb(uint8_t h, uint8_t s, uint8_t v);
 void _CYZ_RGB_pulse();
 Cyz_rgb* _CYZ_RGB_get();
+
+void HSVtoRGB(uint8_t h, Color* c);
 
 #endif

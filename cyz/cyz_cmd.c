@@ -27,6 +27,8 @@ uint8_t CYZ_CMD_get_cmd_len (char cmd) {
 		return 4;
 	case CMD_FADE_TO_RGB:
 		return 4;
+	case CMD_FADE_TO_HSB:
+		return 4;
 	case CMD_WRITE_SCRIPT_LINE:
 		return 8;
 	case CMD_PLAY_LIGHT_SCRIPT:
@@ -52,6 +54,9 @@ void _CYZ_CMD_execute(uint8_t* cmd) {
 		break;
 	case CMD_FADE_TO_RGB:
 		_CYZ_RGB_set_fade_color(cmd[1],cmd[2],cmd[3]);
+		break;
+	case CMD_FADE_TO_HSB:
+		_CYZ_RGB_set_fade_color_hsb(cmd[1], cmd[2], cmd[3]);
 		break;
 	case CMD_WRITE_SCRIPT_LINE:
 	{
@@ -100,7 +105,7 @@ void _CYZ_CMD_execute(uint8_t* cmd) {
 		cyz_cmd.timeadjust = cmd[1];
 	break;
 	case CMD_SET_LEN_RPTS:
-		//cmd[1] is script number, currentrly ignored, can only set script 0
+		//cmd[1] is script number, currently ignored, can only set script 0
 		cyz_cmd.script_length = cmd[2];
 		cyz_cmd.script_repeats = cmd[3];
 	break;
@@ -133,7 +138,6 @@ long _CYZ_CMD_play_next_script_line() {
 		eeprom_busy_wait();
 		eeprom_read_block((void*)&tmp, (const void*)&EEscript[cyz_cmd.script_pos++], 5);
 		_CYZ_CMD_execute(tmp.cmd);
-		//_CYZ_CMD_execute(cyz_cmd.script[cyz_cmd.script_pos++].cmd);
 		if (cyz_cmd.script_pos == cyz_cmd.script_length) {
 			cyz_cmd.script_pos = 0;
 			cyz_cmd.script_repeated++;

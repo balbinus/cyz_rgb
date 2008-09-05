@@ -11,6 +11,7 @@
 #define CYZ_CMD_BOOTP_MAGIC 33
 #define CMD_GO_TO_RGB 'n'
 #define CMD_FADE_TO_RGB 'c'
+#define CMD_FADE_TO_HSB 'h'
 #define CMD_WRITE_SCRIPT_LINE 'W'
 #define CMD_PLAY_LIGHT_SCRIPT 'p'
 #define CMD_STOP_SCRIPT 'o'

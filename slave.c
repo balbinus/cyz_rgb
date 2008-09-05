@@ -1,4 +1,5 @@
 #include <avr/interrupt.h>
+#include <limits.h>
 #include "usiTwi/usiTwiSlave.h"
 #include "cyz/cyz_rgb.h"
 #include "cyz/cyz_cmd.h"
@@ -39,9 +40,16 @@ int main(void)
 /*  TODO: figure out _actual_ math */
 ISR(SIG_OVERFLOW0)
 {
-	static unsigned int sigcount = -1;
-	if (++sigcount == 0) { //TODO: better to use another clock, prescaled
-		_CYZ_CMD_play_next_script_line();
+	static unsigned long sigcount = 1;
+	if (--sigcount == 0) {
+		// TODO: learn to predict how long between each overflow
+
+		long duration = _CYZ_CMD_play_next_script_line();
+		if (duration == -1)
+			sigcount = UINT_MAX;
+		else {
+			sigcount = duration * 255;
+		}
 	}
 
 	_CYZ_RGB_pulse();
