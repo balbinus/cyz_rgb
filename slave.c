@@ -40,18 +40,7 @@ int main(void)
 /*  TODO: figure out _actual_ math */
 ISR(SIG_OVERFLOW0)
 {
-	static unsigned long sigcount = 1;
-	if (--sigcount == 0) {
-		// TODO: learn to predict how long between each overflow
-
-		long duration = _CYZ_CMD_play_next_script_line();
-		if (duration == -1)
-			sigcount = UINT_MAX;
-		else {
-			sigcount = duration * 255;
-		}
-	}
-
+	_CYZ_CMD_tick();
 	_CYZ_RGB_pulse();
 }
 

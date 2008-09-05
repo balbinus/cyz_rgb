@@ -1,7 +1,7 @@
 #include <avr/interrupt.h>
 #include "cyz/cyz_cmd.h"
 #include "cyz/cyz_rgb.h"
-#include <limits.h>
+
 
 #define TWI_GEN_CALL         0x00
 #include "usiTwi/usiTwiMaster.h"
@@ -11,13 +11,7 @@ int main(void) {
 
 	_CYZ_RGB_set_color(255,125,50);
 
-	USI_TWI_Master_Initialise();
 
-	TIFR   = (1 << TOV0);  /* clear interrupt flag */
-	TIMSK  = (1 << TOIE0); /* enable overflow interrupt */
-	TCCR0B = (1 << CS00);  /* start timer, no prescale */
-
-	sei(); // enable interrupts
 	/*
 		line1.dur = 255;
 		line1.cmd[0] = 'c';
@@ -38,9 +32,9 @@ int main(void) {
 		line1[1] = 0;
 		line1[2] = 1;
 		line1[3] = 255;
-		line1[4] = 'c';
+		line1[4] = 'h';
 		line1[5] = 0;
-		line1[6] = 255;
+		line1[6] = 100;
 		line1[7] = 0;
 		for(i=0;i<8;i++) {
 			_CYZ_CMD_receive_one_byte(line1[i]);
@@ -152,14 +146,23 @@ int main(void) {
 			_CYZ_CMD_receive_one_byte(play[i]);
 		}
 		*/
+		unsigned char lenr[4];
+		lenr[0] = 'L';
+		lenr[1] = 0;
+		lenr[2] = 2;
+		lenr[3] = 2;
+		for (i=0;i<4;i++) {
+			_CYZ_CMD_receive_one_byte(lenr[i]);
+		}
 
+		CYZ_CMD_load_boot_params();
 		unsigned char bootdo[6];
 		bootdo[0] = 'B';
 		bootdo[1] = 1;
 		bootdo[2] = 0;
 		bootdo[3] = 0;
 		bootdo[4] = 150;
-		bootdo[5] = 0;
+		bootdo[5] = 150;
 		for (i=0;i<6;i++) {
 			_CYZ_CMD_receive_one_byte(bootdo[i]);
 		}
@@ -167,6 +170,13 @@ int main(void) {
 		CYZ_CMD_load_boot_params();
 	}
 
+	USI_TWI_Master_Initialise();
+
+	TIFR   = (1 << TOV0);  /* clear interrupt flag */
+	TIMSK  = (1 << TOIE0); /* enable overflow interrupt */
+	TCCR0B = (1 << CS00);  /* start timer, no prescale */
+
+	sei(); // enable interrupts
 	for(;;)
 	{}
 
@@ -223,18 +233,7 @@ void cyz_master_send_color() {
 /*	Triggered when timer overflows. */
 ISR(SIG_OVERFLOW0)
 {
-	static unsigned int sigcount = UINT_MAX;
-	if (++sigcount == 0) { //TODO: better to use another clock, prescaled
-		// TODO: learn to predict how long between each overflow
-
-		//ATTENTION: this instruction causes a short but visible flicker in lights
-		cyz_master_send_color();
-
-		uint8_t duration = _CYZ_CMD_play_next_script_line();
-		if (duration > 0 && duration < 255) {
-			sigcount += UINT_MAX - (duration * UINT_MAX/255);
-		}
-	}
-
+	_CYZ_CMD_tick();
+	cyz_master_send_color();
 	_CYZ_RGB_pulse();
 }

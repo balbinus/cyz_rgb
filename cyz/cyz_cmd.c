@@ -1,5 +1,6 @@
 #include "cyz_cmd.h"
 #include <avr/eeprom.h>
+#include <limits.h>
 #include "cyz_rgb.h"
 
 boot_parms EEMEM EEbbotp;
@@ -18,6 +19,7 @@ void CYZ_CMD_GET_INSTANCE(Cyz_rgb* cyz_rgb) {
 	cyz_cmd.script_repeated = 0;
 	cyz_cmd.timeadjust = 0;
 	cyz_cmd.addr = 0x0d;
+	cyz_cmd.tick_count = 1;
 }
 
 /* returns the length of the command, command+payload. */
@@ -29,8 +31,12 @@ uint8_t CYZ_CMD_get_cmd_len (char cmd) {
 		return 4;
 	case CMD_FADE_TO_RGB:
 		return 4;
+	case CMD_FADE_TO_RND_RGB:
+			return 4;
 	case CMD_FADE_TO_HSB:
 		return 4;
+	case CMD_FADE_TO_RND_HSB:
+			return 4;
 	case CMD_WRITE_SCRIPT_LINE:
 		return 8;
 	case CMD_PLAY_LIGHT_SCRIPT:
@@ -59,8 +65,16 @@ void _CYZ_CMD_execute(uint8_t* cmd) {
 	case CMD_FADE_TO_RGB:
 		_CYZ_RGB_set_fade_color(cmd[1],cmd[2],cmd[3]);
 		break;
+	case CMD_FADE_TO_RND_RGB:
+		_CYZ_RGB_set_fade_color(
+			cyz_cmd.cyz_rgb->color.r + _CYZ_CMD_prng(cmd[1]),
+			cyz_cmd.cyz_rgb->color.g + _CYZ_CMD_prng(cmd[2]),
+			cyz_cmd.cyz_rgb->color.b + _CYZ_CMD_prng(cmd[3]));
+		break;
 	case CMD_FADE_TO_HSB:
 		_CYZ_RGB_set_fade_color_hsb(cmd[1], cmd[2], cmd[3]);
+		break;
+	case CMD_FADE_TO_RND_HSB:
 		break;
 	case CMD_WRITE_SCRIPT_LINE:
 	{
@@ -178,5 +192,24 @@ void _CYZ_CMD_receive_one_byte(uint8_t in) {
 	}
 	else {
 		cyz_cmd.rcv_cmd_buf_cnt++;
+	}
+}
+
+#define M 0x7FFFFFFF  // 2^31-1, the modulus used by the psuedo-random number generator prng().
+uint8_t _CYZ_CMD_prng(uint8_t range) {
+	static uint8_t count = 1;
+	if (range == 0) return 0;
+	uint8_t x = ++count + cyz_cmd.tick_count;
+	return ((++x >> 4) + ((x << 3) & M) - (x >> 7) - ((x << 6) & M))%range;
+}
+
+void _CYZ_CMD_tick() {
+	if (--cyz_cmd.tick_count == 0) {
+		long duration = _CYZ_CMD_play_next_script_line();
+		if (duration == -1)
+			cyz_cmd.tick_count = UINT_MAX;
+		else {
+			cyz_cmd.tick_count = duration * 255;
+		}
 	}
 }
