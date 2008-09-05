@@ -83,6 +83,6 @@ void _CYZ_RGB_set_fade_color_hsb(uint8_t h, uint8_t s, uint8_t v);
 void _CYZ_RGB_pulse();
 Cyz_rgb* _CYZ_RGB_get();
 
-void HSVtoRGB(uint8_t h, Color* c);
+void _CYZ_RGB_rgb_to_hsv(Color rgb, uint8_t* hue, uint8_t* sat, uint8_t* val);
 
 #endif

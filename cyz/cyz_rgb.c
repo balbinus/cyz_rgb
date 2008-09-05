@@ -50,6 +50,42 @@ void _CYZ_RGB_set_fade_color_hsb(uint8_t h, uint8_t s, uint8_t v)
 		else                   { cyz_rgb.fade_color.r = v     ; cyz_rgb.fade_color.g = var_1 ; cyz_rgb.fade_color.b = var_2; }
 	}
 }
+#define MIN3(x,y,z)  ((y) <= (z) ? \
+                         ((x) <= (y) ? (x) : (y)) \
+                     : \
+                         ((x) <= (z) ? (x) : (z)))
+
+#define MAX3(x,y,z)  ((y) >= (z) ? \
+                         ((x) >= (y) ? (x) : (y)) \
+                     : \
+                         ((x) >= (z) ? (x) : (z)))
+
+void _CYZ_RGB_rgb_to_hsv(Color rgb, uint8_t* hue, uint8_t* sat, uint8_t* val) {
+    unsigned char rgb_min, rgb_max;
+    rgb_min = MIN3(rgb.r, rgb.g, rgb.b);
+    rgb_max = MAX3(rgb.r, rgb.g, rgb.b);
+
+    *val = rgb_max;
+    if (*val == 0) {
+        *hue = *sat = 0;
+        return;
+    }
+
+    *sat = 255*(rgb_max - rgb_min)/ *val;
+    if (*sat == 0) {
+        *hue = 0;
+        return;
+    }
+
+    /* Compute hue */
+    if (rgb_max == rgb.r) {
+        *hue = 0 + 43*(rgb.g - rgb.b)/(rgb_max - rgb_min);
+    } else if (rgb_max == rgb.g) {
+        *hue = 85 + 43*(rgb.b - rgb.r)/(rgb_max - rgb_min);
+    } else /* rgb_max == rgb.b */ {
+        *hue = 171 + 43*(rgb.r - rgb.g)/(rgb_max - rgb_min);
+    }
+}
 
 #define MIN(a, b)  (((a) < (b)) ? (a) : (b))
 

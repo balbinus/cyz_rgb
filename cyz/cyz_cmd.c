@@ -32,11 +32,11 @@ uint8_t CYZ_CMD_get_cmd_len (char cmd) {
 	case CMD_FADE_TO_RGB:
 		return 4;
 	case CMD_FADE_TO_RND_RGB:
-			return 4;
+		return 4;
 	case CMD_FADE_TO_HSB:
 		return 4;
 	case CMD_FADE_TO_RND_HSB:
-			return 4;
+		return 4;
 	case CMD_WRITE_SCRIPT_LINE:
 		return 8;
 	case CMD_PLAY_LIGHT_SCRIPT:
@@ -67,13 +67,20 @@ void _CYZ_CMD_execute(uint8_t* cmd) {
 		break;
 	case CMD_FADE_TO_RND_RGB:
 		_CYZ_RGB_set_fade_color(
-			cyz_cmd.cyz_rgb->color.r + _CYZ_CMD_prng(cmd[1]),
-			cyz_cmd.cyz_rgb->color.g + _CYZ_CMD_prng(cmd[2]),
-			cyz_cmd.cyz_rgb->color.b + _CYZ_CMD_prng(cmd[3]));
+				cyz_cmd.cyz_rgb->color.r + _CYZ_CMD_prng(cmd[1]),
+				cyz_cmd.cyz_rgb->color.g + _CYZ_CMD_prng(cmd[2]),
+				cyz_cmd.cyz_rgb->color.b + _CYZ_CMD_prng(cmd[3]));
 		break;
 	case CMD_FADE_TO_HSB:
-		_CYZ_RGB_set_fade_color_hsb(cmd[1], cmd[2], cmd[3]);
-		break;
+	{
+		uint8_t h,s,v;
+		_CYZ_RGB_rgb_to_hsv(cyz_cmd.cyz_rgb->color, &h, &s, &v);
+		_CYZ_RGB_set_fade_color_hsb(
+				h + _CYZ_CMD_prng(cmd[1]),
+				s + _CYZ_CMD_prng(cmd[2]),
+				v + _CYZ_CMD_prng(cmd[3]));
+	}
+	break;
 	case CMD_FADE_TO_RND_HSB:
 		break;
 	case CMD_WRITE_SCRIPT_LINE:
