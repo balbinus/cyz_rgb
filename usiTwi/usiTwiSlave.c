@@ -43,6 +43,7 @@ Change Activity:
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include "usiTwiSlave.h"
+#include "../cyz/cyz_cmd.h"
 
 
 
@@ -247,7 +248,8 @@ typedef enum
 
 ********************************************************************************/
 
-static uint8_t                  slaveAddress;
+//static uint8_t                  slaveAddress;
+static Cyz_cmd*					cyz_cmd;
 static volatile overflowState_t overflowState;
 
 
@@ -295,15 +297,13 @@ flushTwiBuffers(
 
 // initialise USI for TWI slave mode
 
-void
-usiTwiSlaveInit(
-  uint8_t ownAddress
-)
+void usiTwiSlaveInit(Cyz_cmd* cyz_cmd_instance)
 {
+  cyz_cmd = cyz_cmd_instance;
 
   flushTwiBuffers( );
 
-  slaveAddress = ownAddress;
+  //slaveAddress = ownAddress;
 
   // In Two Wire mode (USIWM1, USIWM0 = 1X), the slave USI will pull SCL
   // low when a start condition is detected or a counter overflow (only
@@ -502,7 +502,7 @@ ISR( USI_OVERFLOW_VECTOR )
     // Address mode: check address and send ACK (and next USI_SLAVE_SEND_DATA) if OK,
     // else reset USI
     case USI_SLAVE_CHECK_ADDRESS:
-      if ( ( USIDR == 0 ) || ( ( USIDR >> 1 ) == slaveAddress) )
+      if ( ( USIDR == 0 ) || ( ( USIDR >> 1 ) == cyz_cmd->addr) )
       {
           if ( USIDR & 0x01 )
         {

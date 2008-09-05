@@ -4,6 +4,7 @@
 
 boot_parms EEMEM EEbbotp;
 script_line EEMEM EEscript[MAX_SCRIPT_LEN];
+uint8_t EEMEM EEaddr;
 Cyz_cmd cyz_cmd;
 
 void CYZ_CMD_GET_INSTANCE(Cyz_rgb* cyz_rgb) {
@@ -16,6 +17,7 @@ void CYZ_CMD_GET_INSTANCE(Cyz_rgb* cyz_rgb) {
 	cyz_cmd.script_repeats = 0;
 	cyz_cmd.script_repeated = 0;
 	cyz_cmd.timeadjust = 0;
+	cyz_cmd.addr = 0x0d;
 }
 
 /* returns the length of the command, command+payload. */
@@ -43,6 +45,8 @@ uint8_t CYZ_CMD_get_cmd_len (char cmd) {
 		return 1;
 	case CMD_SET_LEN_RPTS:
 		return 4;
+	case CMD_SET_ADDR:
+		return 5;
 	}
 	return 0xFF;
 }
@@ -100,19 +104,28 @@ void _CYZ_CMD_execute(uint8_t* cmd) {
 		if (cmd[1] != 0) {
 			cyz_cmd.cyz_rgb->fadespeed = cmd[1];
 		}
-	break;
+		break;
 	case CMD_SET_TIMEADJUST:
 		cyz_cmd.timeadjust = cmd[1];
-	break;
+		break;
 	case CMD_SET_LEN_RPTS:
 		//cmd[1] is script number, currently ignored, can only set script 0
 		cyz_cmd.script_length = cmd[2];
 		cyz_cmd.script_repeats = cmd[3];
-	break;
+		break;
+	case CMD_SET_ADDR:
+		if (cmd[2] == 0x0d && cmd[3] == 0x0d && cmd[1] == cmd[2]) {
+			cyz_cmd.addr = cmd[1];
+			eeprom_write_byte(&EEaddr,cyz_cmd.addr);
+		}
+		break;
 	}
 }
 
 void CYZ_CMD_load_boot_params() {
+	eeprom_busy_wait();
+	cyz_cmd.addr = eeprom_read_byte(&EEaddr);
+
 	boot_parms temp;
 	eeprom_busy_wait();
 	eeprom_read_block((void*)&temp, (const void*)&EEbbotp, sizeof(boot_parms));

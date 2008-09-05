@@ -19,6 +19,7 @@
 #define CMD_SET_FADESPEED 'f'
 #define CMD_SET_TIMEADJUST 't'
 #define CMD_SET_LEN_RPTS 'L'
+#define CMD_SET_ADDR 'A'
 
 #define MAX_SCRIPT_LEN 10
 
@@ -29,6 +30,7 @@ typedef struct _boot_parms {
 	uint8_t repeats; // number of repetitions
 	uint8_t fadespeed;
 	int8_t timeadjust;
+	uint8_t addr;
 } boot_parms;
 
 typedef struct _script_line {
@@ -48,6 +50,7 @@ typedef struct CYZ_CMD {
 	uint8_t script_repeats;
 	uint8_t script_repeated;
 	uint8_t timeadjust;
+	uint8_t addr;
 } Cyz_cmd;
 
 

@@ -44,7 +44,7 @@ Change Activity:
 
 #include <stdbool.h>
 
-
+#include "../cyz/cyz_cmd.h"
 
 /********************************************************************************
 
@@ -52,7 +52,7 @@ Change Activity:
 
 ********************************************************************************/
 
-void    usiTwiSlaveInit( uint8_t );
+void    usiTwiSlaveInit( Cyz_cmd* cyz_cmd_instance );
 void    usiTwiTransmitByte( uint8_t );
 uint8_t usiTwiReceiveByte( void );
 bool    usiTwiDataInReceiveBuffer( void );
