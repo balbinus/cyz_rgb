@@ -2,7 +2,6 @@
 #include "cyz/cyz_cmd.h"
 #include "cyz/cyz_rgb.h"
 
-
 #define TWI_GEN_CALL         0x00
 #include "usiTwi/usiTwiMaster.h"
 
@@ -19,7 +18,7 @@ int main(void) {
 		line1.cmd[2] = 0;
 		line1.cmd[3] = 0;
 	 */
-	/**/
+	/*
 	{
 		int i;
 		unsigned char line1[8] = { 'W', 0, 0, 255, 'c', 0, 0, 255 };
@@ -136,16 +135,7 @@ int main(void) {
 			_CYZ_CMD_receive_one_byte(line1[i]);
 		}
 
-		/*
-		unsigned char play[4];
-		play[0] = 'p';
-		play[1] = 0;
-		play[2] = 0;
-		play[3] = 0;
-		for(i=0;i<4;i++) {
-			_CYZ_CMD_receive_one_byte(play[i]);
-		}
-		*/
+
 		unsigned char lenr[4];
 		lenr[0] = 'L';
 		lenr[1] = 0;
@@ -154,7 +144,6 @@ int main(void) {
 		for (i=0;i<4;i++) {
 			_CYZ_CMD_receive_one_byte(lenr[i]);
 		}
-
 		CYZ_CMD_load_boot_params();
 		unsigned char bootdo[6];
 		bootdo[0] = 'B';
@@ -169,6 +158,7 @@ int main(void) {
 
 		CYZ_CMD_load_boot_params();
 	}
+*/
 
 	USI_TWI_Master_Initialise();
 

@@ -8,7 +8,7 @@ script_line EEMEM EEscript[MAX_SCRIPT_LEN];
 uint8_t EEMEM EEaddr;
 Cyz_cmd cyz_cmd;
 
-void CYZ_CMD_GET_INSTANCE(Cyz_rgb* cyz_rgb) {
+Cyz_cmd* CYZ_CMD_GET_INSTANCE(Cyz_rgb* cyz_rgb) {
 	cyz_cmd.cyz_rgb = cyz_rgb;
 	cyz_cmd.rcv_cmd_buf_cnt = 0;
 	cyz_cmd.rcv_cmd_len = 0xFF;
@@ -20,6 +20,8 @@ void CYZ_CMD_GET_INSTANCE(Cyz_rgb* cyz_rgb) {
 	cyz_cmd.timeadjust = 0;
 	cyz_cmd.addr = 0x0d;
 	cyz_cmd.tick_count = 1;
+	cyz_cmd.send_buffer.idx_start = 0;
+	cyz_cmd.send_buffer.idx_end = 0;
 }
 
 /* returns the length of the command, command+payload. */
@@ -53,6 +55,8 @@ uint8_t CYZ_CMD_get_cmd_len (char cmd) {
 		return 4;
 	case CMD_SET_ADDR:
 		return 5;
+	case CMD_GET_ADDR:
+		return 1;
 	}
 	return 0xFF;
 }
@@ -140,6 +144,9 @@ void _CYZ_CMD_execute(uint8_t* cmd) {
 			eeprom_write_byte(&EEaddr,cyz_cmd.addr);
 		}
 		break;
+	case CMD_GET_ADDR:
+		ring_buffer_push(cyz_cmd.send_buffer, cyz_cmd.addr);
+		break;
 	}
 }
 
@@ -200,6 +207,14 @@ void _CYZ_CMD_receive_one_byte(uint8_t in) {
 	else {
 		cyz_cmd.rcv_cmd_buf_cnt++;
 	}
+}
+
+uint8_t _CYZ_CMD_get_one_byte_from_send_buffer() {
+	return ring_buffer_pop(cyz_cmd.send_buffer);
+}
+
+uint8_t _CYZ_CMD_is_data_in_send_buffer() {
+	return ring_buffer_has_data(cyz_cmd.send_buffer);
 }
 
 #define M 0x7FFFFFFF  // 2^31-1, the modulus used by the psuedo-random number generator prng().

@@ -85,4 +85,15 @@ Cyz_rgb* _CYZ_RGB_get();
 
 void _CYZ_RGB_rgb_to_hsv(Color rgb, uint8_t* hue, uint8_t* sat, uint8_t* val);
 
+#define MIN(a, b)  (((a) < (b)) ? (a) : (b))
+#define MIN3(x,y,z)  ((y) <= (z) ? \
+                         ((x) <= (y) ? (x) : (y)) \
+                     : \
+                         ((x) <= (z) ? (x) : (z)))
+
+#define MAX3(x,y,z)  ((y) >= (z) ? \
+                         ((x) >= (y) ? (x) : (y)) \
+                     : \
+                         ((x) >= (z) ? (x) : (z)))
+
 #endif
