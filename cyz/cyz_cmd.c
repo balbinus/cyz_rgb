@@ -57,6 +57,8 @@ uint8_t CYZ_CMD_get_cmd_len (char cmd) {
 		return 5;
 	case CMD_GET_ADDR:
 		return 1;
+	case CMD_GET_RGB:
+		return 1;
 	}
 	return 0xFF;
 }
@@ -139,7 +141,7 @@ void _CYZ_CMD_execute(uint8_t* cmd) {
 		cyz_cmd.script_repeats = cmd[3];
 		break;
 	case CMD_SET_ADDR:
-		if (cmd[2] == 0x0d && cmd[3] == 0x0d && cmd[1] == cmd[2]) {
+		if (cmd[2] == 0x0d && cmd[3] == 0x0d && cmd[1] == cmd[4]) {
 			cyz_cmd.addr = cmd[1];
 			eeprom_write_byte(&EEaddr,cyz_cmd.addr);
 		}
@@ -147,6 +149,10 @@ void _CYZ_CMD_execute(uint8_t* cmd) {
 	case CMD_GET_ADDR:
 		ring_buffer_push(cyz_cmd.send_buffer, cyz_cmd.addr);
 		break;
+	case CMD_GET_RGB:
+		ring_buffer_push(cyz_cmd.send_buffer, cyz_cmd.cyz_rgb->color.r);
+		ring_buffer_push(cyz_cmd.send_buffer, cyz_cmd.cyz_rgb->color.g);
+		ring_buffer_push(cyz_cmd.send_buffer, cyz_cmd.cyz_rgb->color.b);
 	}
 }
 

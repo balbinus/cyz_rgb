@@ -25,8 +25,10 @@ int main(void)
 		while(usiTwiDataInReceiveBuffer()) {
 			_CYZ_CMD_receive_one_byte(usiTwiReceiveByte());
 		}
-		while (_CYZ_CMD_is_data_in_send_buffer()) {
-			usiTwiTransmitByte(_CYZ_CMD_get_one_byte_from_send_buffer());
+		if (_CYZ_CMD_is_data_in_send_buffer()) {
+			while (_CYZ_CMD_is_data_in_send_buffer()) {
+				usiTwiTransmitByte(_CYZ_CMD_get_one_byte_from_send_buffer());
+			}
 		}
 	}
 

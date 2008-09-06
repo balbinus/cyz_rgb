@@ -23,6 +23,7 @@
 #define CMD_SET_LEN_RPTS 'L'
 #define CMD_SET_ADDR 'A'
 #define CMD_GET_ADDR 'a'
+#define CMD_GET_RGB 'g'
 
 #define MAX_SCRIPT_LEN 10
 
