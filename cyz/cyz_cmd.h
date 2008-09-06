@@ -7,6 +7,9 @@
 
 #include "cyz_rgb.h"
 
+#define VERSION_MAJOR 0
+#define VERSION_MINOR 2
+
 #define CYZ_CMD_MAX_CMD_LEN 8
 #define CYZ_CMD_BOOTP_MAGIC 33
 #define CMD_GO_TO_RGB 'n'
@@ -24,6 +27,8 @@
 #define CMD_SET_ADDR 'A'
 #define CMD_GET_ADDR 'a'
 #define CMD_GET_RGB 'g'
+#define CMD_GET_SCRIPT_LINE 'R'
+#define CMD_GET_FIRMWARE_VERSION 'Z'
 
 #define MAX_SCRIPT_LEN 10
 

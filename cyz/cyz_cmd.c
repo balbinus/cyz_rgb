@@ -22,6 +22,7 @@ Cyz_cmd* CYZ_CMD_GET_INSTANCE(Cyz_rgb* cyz_rgb) {
 	cyz_cmd.tick_count = 1;
 	cyz_cmd.send_buffer.idx_start = 0;
 	cyz_cmd.send_buffer.idx_end = 0;
+	return &cyz_cmd;
 }
 
 /* returns the length of the command, command+payload. */
@@ -58,6 +59,10 @@ uint8_t CYZ_CMD_get_cmd_len (char cmd) {
 	case CMD_GET_ADDR:
 		return 1;
 	case CMD_GET_RGB:
+		return 1;
+	case CMD_GET_SCRIPT_LINE:
+		return 3;
+	case CMD_GET_FIRMWARE_VERSION:
 		return 1;
 	}
 	return 0xFF;
@@ -153,6 +158,25 @@ void _CYZ_CMD_execute(uint8_t* cmd) {
 		ring_buffer_push(cyz_cmd.send_buffer, cyz_cmd.cyz_rgb->color.r);
 		ring_buffer_push(cyz_cmd.send_buffer, cyz_cmd.cyz_rgb->color.g);
 		ring_buffer_push(cyz_cmd.send_buffer, cyz_cmd.cyz_rgb->color.b);
+	case CMD_GET_SCRIPT_LINE:
+	{
+		//cmd[1] is ignore: only script 0 can be read
+		script_line tmp;
+		eeprom_busy_wait();
+		eeprom_read_block((void*)&tmp, (const void*)&EEscript[cmd[2]], 5);
+		ring_buffer_push(cyz_cmd.send_buffer, tmp.dur);
+		ring_buffer_push(cyz_cmd.send_buffer, tmp.cmd[0]);
+		ring_buffer_push(cyz_cmd.send_buffer, tmp.cmd[1]);
+		ring_buffer_push(cyz_cmd.send_buffer, tmp.cmd[2]);
+		ring_buffer_push(cyz_cmd.send_buffer, tmp.cmd[3]);
+	}
+	break;
+	case CMD_GET_FIRMWARE_VERSION:
+	{
+		ring_buffer_push(cyz_cmd.send_buffer, VERSION_MAJOR);
+		ring_buffer_push(cyz_cmd.send_buffer, VERSION_MINOR);
+	}
+	break;
 	}
 }
 
