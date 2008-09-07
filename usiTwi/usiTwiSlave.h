@@ -52,7 +52,7 @@ Change Activity:
 
 ********************************************************************************/
 
-void    usiTwiSlaveInit( Cyz_cmd* cyz_cmd_instance );
+void    usiTwiSlaveInit( uint8_t );
 void    usiTwiTransmitByte( uint8_t );
 uint8_t usiTwiReceiveByte( void );
 bool    usiTwiDataInReceiveBuffer( void );

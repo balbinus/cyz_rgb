@@ -1,7 +1,15 @@
 RM := rm -rf
 
 # All Target
-all:  clean out/master.hex out/slave.hex
+all:  clean out/master.hex out/slave.hex test/test out/test_i2c.hex
+
+#test
+test/test: out/cyz_cmd.o
+	gcc -Wall -Os -fpack-struct -fshort-enums -funsigned-char -funsigned-bitfields -o "out/test" "../test/test.c"
+
+#i2cmaster
+out/i2cmaster.o:
+	avr-gcc -c -mmcu=at90s8515 -I. -x assembler-with-cpp -Wa,-adhlns=out/i2cmaster.lst,-gstabs  ../i2cmaster/i2cmaster.S -o out/i2cmaster.o
 
 #cyz_cmd
 out/cyz_cmd.o: 
@@ -18,7 +26,13 @@ out/cyz_rgb.o:
 	avr-gcc -Wall -Os -fpack-struct -fshort-enums -funsigned-char -funsigned-bitfields -mmcu=attiny45 -DF_CPU=1000000UL -MMD -MP -MF"out/cyz_rgb.d" -MT"out/cyz_rgb.d" -c -o"out/cyz_rgb.o" "../cyz/cyz_rgb.c"
 	@echo 'Finished building: $<'
 	@echo ' '
-	
+out/test_i2c.hex: out/test_i2c.elf
+	-avr-objcopy -R .eeprom -O ihex out/test_i2c.elf  "out/test_i2c.hex"
+out/test_i2c.elf: out/test_i2c.o out/usiTwiSlave.o
+	avr-gcc -Wl,-Map,out/test_i2c.map -L/opt/local/avr/include -mmcu=attiny45 -o"out/test_i2c.elf"  out/test_i2c.o out/usiTwiSlave.o
+out/test_i2c.o: out/test_i2c.elf
+	avr-gcc -Wall -Os -fpack-struct -fshort-enums -funsigned-char -funsigned-bitfields -mmcu=attiny45 -DF_CPU=1000000UL -MMD -MP -MF"out/test_i2c.d" -MT"out/test_i2c.d" -c -o"out/test_i2c.o" "../test/test_i2c.c"
+
 # Master-mode Firmware
 out/master.hex: out/master.elf out/master.eep sizedummy-master
 	@echo 'Create Flash image (ihex format)'

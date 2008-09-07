@@ -1,25 +1,5 @@
 #include "cyz_rgb.h"
 
-Cyz_rgb cyz_rgb;
-
-Cyz_rgb* _CYZ_RGB_get() {
-	return &cyz_rgb;
-}
-
-void _CYZ_RGB_set_color(uint8_t r, uint8_t g, uint8_t b) {
-	cyz_rgb.fade = 0;
-	cyz_rgb.color.r = r;
-	cyz_rgb.color.g = g;
-	cyz_rgb.color.b = b;
-}
-
-void _CYZ_RGB_set_fade_color(uint8_t r, uint8_t g, uint8_t b) {
-	cyz_rgb.fade = 1;
-	cyz_rgb.fade_color.r = r;
-	cyz_rgb.fade_color.g = g;
-	cyz_rgb.fade_color.b = b;
-}
-
 /**
  * Ripoff of this: http://www.tecgraf.puc-rio.br/~mgattass/color/HSVtoRGB.htm
  * Modified to work with unsigned chars. Some precision is lost as intermediate values are scaled down by 16 to avoid char overflow.
@@ -127,12 +107,11 @@ void _CYZ_RGB_pulse() {
 	if (cyz_rgb.color.b != 255 && cyz_rgb.pulse_count == cyz_rgb.color.b) BLU_LED_OFF;
 }
 
-Cyz_rgb* CYZ_RGB_GET_INSTANCE() {
+void CYZ_RGB_GET_INSTANCE() {
 	cyz_rgb.pulse_count = 0xFF;
 	cyz_rgb.fade = 0;
 	cyz_rgb.fadespeed = 1;
 	PWM_DDR |= 1<<PINRED;
 	PWM_DDR |= 1<<PINGRN;
 	PWM_DDR |= 1<<PINBLU;
-	return &cyz_rgb;
 }

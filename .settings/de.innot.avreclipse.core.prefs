@@ -1,10 +1,29 @@
-#Wed Sep 03 13:53:18 BST 2008
+#Sun Sep 07 01:54:36 BST 2008
 avrtarget/ClockFrequency=1000000
 avrtarget/ExtRAMSize=0
 avrtarget/ExtendedRAM=false
 avrtarget/MCUType=attiny45
 avrtarget/UseEEPROM=false
 avrtarget/UseExtendedRAMforHeap=true
+avrtarget/de.innot.avreclipse.configuration.app.release.1716721803.1519898749.1968520622.410843156/ClockFrequency=1000000
+avrtarget/de.innot.avreclipse.configuration.app.release.1716721803.1519898749.1968520622.410843156/ExtRAMSize=0
+avrtarget/de.innot.avreclipse.configuration.app.release.1716721803.1519898749.1968520622.410843156/ExtendedRAM=false
+avrtarget/de.innot.avreclipse.configuration.app.release.1716721803.1519898749.1968520622.410843156/MCUType=attiny45
+avrtarget/de.innot.avreclipse.configuration.app.release.1716721803.1519898749.1968520622.410843156/UseEEPROM=false
+avrtarget/de.innot.avreclipse.configuration.app.release.1716721803.1519898749.1968520622.410843156/UseExtendedRAMforHeap=true
+avrtarget/de.innot.avreclipse.configuration.app.release.1716721803.1519898749.1968520622.410843156/avrdude/BitBangDelay=
+avrtarget/de.innot.avreclipse.configuration.app.release.1716721803.1519898749.1968520622.410843156/avrdude/Bitclock=
+avrtarget/de.innot.avreclipse.configuration.app.release.1716721803.1519898749.1968520622.410843156/avrdude/EEPROMFile=
+avrtarget/de.innot.avreclipse.configuration.app.release.1716721803.1519898749.1968520622.410843156/avrdude/EEPROMFromConfig=true
+avrtarget/de.innot.avreclipse.configuration.app.release.1716721803.1519898749.1968520622.410843156/avrdude/FlashFile=${workspace_loc\:/cyz_rgb/make/out/test_i2c.hex}
+avrtarget/de.innot.avreclipse.configuration.app.release.1716721803.1519898749.1968520622.410843156/avrdude/FlashFromConfig=false
+avrtarget/de.innot.avreclipse.configuration.app.release.1716721803.1519898749.1968520622.410843156/avrdude/NoSigCheck=false
+avrtarget/de.innot.avreclipse.configuration.app.release.1716721803.1519898749.1968520622.410843156/avrdude/NoVerify=false
+avrtarget/de.innot.avreclipse.configuration.app.release.1716721803.1519898749.1968520622.410843156/avrdude/NoWrite=false
+avrtarget/de.innot.avreclipse.configuration.app.release.1716721803.1519898749.1968520622.410843156/avrdude/ProgrammerID=programmerconfig.2
+avrtarget/de.innot.avreclipse.configuration.app.release.1716721803.1519898749.1968520622.410843156/avrdude/UseCounter=false
+avrtarget/de.innot.avreclipse.configuration.app.release.1716721803.1519898749.1968520622.410843156/avrdude/WriteEEPROM=false
+avrtarget/de.innot.avreclipse.configuration.app.release.1716721803.1519898749.1968520622.410843156/avrdude/WriteFlash=true
 avrtarget/de.innot.avreclipse.configuration.app.release.1716721803.1519898749.1968520622/ClockFrequency=1000000
 avrtarget/de.innot.avreclipse.configuration.app.release.1716721803.1519898749.1968520622/ExtRAMSize=0
 avrtarget/de.innot.avreclipse.configuration.app.release.1716721803.1519898749.1968520622/ExtendedRAM=false

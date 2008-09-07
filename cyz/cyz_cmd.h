@@ -4,8 +4,8 @@
  * Command parser and executor
  *
  */
-
 #include "cyz_rgb.h"
+#include "../ring_buffer.h"
 
 #define VERSION_MAJOR 0
 #define VERSION_MINOR 2
@@ -32,6 +32,7 @@
 
 #define MAX_SCRIPT_LEN 10
 
+
 typedef struct _boot_parms {
 	uint8_t magic; // check byte to see if any data has been stored
 	uint8_t mode; // 0 do nothing, 1 play light script
@@ -47,18 +48,10 @@ typedef struct _script_line {
     uint8_t cmd[4];    // cmd,arg1,arg2,arg3
 } script_line;
 
-typedef struct _ring_buffer {
-	uint8_t idx_start;
-	uint8_t idx_end;
-	uint8_t data[8];
-} ring_buffer;
-#define ring_buffer_push(buffer, value) buffer.data[buffer.idx_end++%8] = value
-#define ring_buffer_pop(buffer) buffer.data[buffer.idx_start++%8]
-#define ring_buffer_has_data(buffer) buffer.idx_start != buffer.idx_end
+
 
 typedef struct CYZ_CMD {
 	script_line script[MAX_SCRIPT_LEN];
-	Cyz_rgb* cyz_rgb;
 	uint8_t rcv_cmd_buf[8];
 	uint8_t rcv_cmd_buf_cnt;
 	uint8_t rcv_cmd_len;
@@ -73,9 +66,9 @@ typedef struct CYZ_CMD {
 	ring_buffer send_buffer;
 } Cyz_cmd;
 
+Cyz_cmd cyz_cmd;
 
-
-Cyz_cmd* CYZ_CMD_GET_INSTANCE(Cyz_rgb* cyz_rgb);
+void CYZ_CMD_GET_INSTANCE();
 void _CYZ_CMD_execute(uint8_t* cmd);
 void _CYZ_CMD_receive_one_byte(uint8_t in);
 long _CYZ_CMD_play_next_script_line();

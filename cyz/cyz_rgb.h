@@ -1,5 +1,8 @@
 #ifndef CYZ_RGB_H
 #define CYZ_RGB_H
+
+
+
 /*****************************************************************************
  *	Codalyze PWM RGB: A very basic implementation of pulse-width modulation (PWM) on an AVR controller with
  *  three leds of different color(R,G,B): display any 24-bit color using three leds.
@@ -74,14 +77,11 @@ typedef struct CYZ_RGB {
 	Color fade_color;
 } Cyz_rgb;
 
+Cyz_rgb cyz_rgb;
 
-Cyz_rgb* CYZ_RGB_GET_INSTANCE();
-void _CYZ_RGB_init();
-void _CYZ_RGB_set_color(uint8_t r, uint8_t g, uint8_t b);
-void _CYZ_RGB_set_fade_color(uint8_t r, uint8_t g, uint8_t b);
+void CYZ_RGB_GET_INSTANCE();
 void _CYZ_RGB_set_fade_color_hsb(uint8_t h, uint8_t s, uint8_t v);
 void _CYZ_RGB_pulse();
-Cyz_rgb* _CYZ_RGB_get();
 
 void _CYZ_RGB_rgb_to_hsv(Color rgb, uint8_t* hue, uint8_t* sat, uint8_t* val);
 

@@ -6,10 +6,8 @@
 boot_parms EEMEM EEbbotp;
 script_line EEMEM EEscript[MAX_SCRIPT_LEN];
 uint8_t EEMEM EEaddr;
-Cyz_cmd cyz_cmd;
 
-Cyz_cmd* CYZ_CMD_GET_INSTANCE(Cyz_rgb* cyz_rgb) {
-	cyz_cmd.cyz_rgb = cyz_rgb;
+void CYZ_CMD_GET_INSTANCE() {
 	cyz_cmd.rcv_cmd_buf_cnt = 0;
 	cyz_cmd.rcv_cmd_len = 0xFF;
 	cyz_cmd.play_script = 0;
@@ -22,7 +20,6 @@ Cyz_cmd* CYZ_CMD_GET_INSTANCE(Cyz_rgb* cyz_rgb) {
 	cyz_cmd.tick_count = 1;
 	cyz_cmd.send_buffer.idx_start = 0;
 	cyz_cmd.send_buffer.idx_end = 0;
-	return &cyz_cmd;
 }
 
 /* returns the length of the command, command+payload. */
@@ -71,21 +68,24 @@ uint8_t CYZ_CMD_get_cmd_len (char cmd) {
 void _CYZ_CMD_execute(uint8_t* cmd) {
 	switch (cmd[0]) {
 	case CMD_GO_TO_RGB:
-		_CYZ_RGB_set_color(cmd[1],cmd[2],cmd[3]);
+		cyz_rgb.color.r = cmd[1];
+		cyz_rgb.color.g = cmd[2];
+		cyz_rgb.color.b = cmd[3];
 		break;
 	case CMD_FADE_TO_RGB:
-		_CYZ_RGB_set_fade_color(cmd[1],cmd[2],cmd[3]);
+		cyz_rgb.fade_color.r = cmd[1];
+		cyz_rgb.fade_color.g = cmd[2];
+		cyz_rgb.fade_color.b = cmd[3];
 		break;
 	case CMD_FADE_TO_RND_RGB:
-		_CYZ_RGB_set_fade_color(
-				cyz_cmd.cyz_rgb->color.r + _CYZ_CMD_prng(cmd[1]),
-				cyz_cmd.cyz_rgb->color.g + _CYZ_CMD_prng(cmd[2]),
-				cyz_cmd.cyz_rgb->color.b + _CYZ_CMD_prng(cmd[3]));
+		cyz_rgb.fade_color.r = cyz_rgb.color.r + _CYZ_CMD_prng(cmd[1]);
+		cyz_rgb.fade_color.g = cyz_rgb.color.r + _CYZ_CMD_prng(cmd[2]);
+		cyz_rgb.fade_color.b = cyz_rgb.color.r + _CYZ_CMD_prng(cmd[3]);
 		break;
 	case CMD_FADE_TO_HSB:
 	{
 		uint8_t h,s,v;
-		_CYZ_RGB_rgb_to_hsv(cyz_cmd.cyz_rgb->color, &h, &s, &v);
+		_CYZ_RGB_rgb_to_hsv(cyz_rgb.color, &h, &s, &v);
 		_CYZ_RGB_set_fade_color_hsb(
 				h + _CYZ_CMD_prng(cmd[1]),
 				s + _CYZ_CMD_prng(cmd[2]),
@@ -134,7 +134,7 @@ void _CYZ_CMD_execute(uint8_t* cmd) {
 	}
 	case CMD_SET_FADESPEED:
 		if (cmd[1] != 0) {
-			cyz_cmd.cyz_rgb->fadespeed = cmd[1];
+			cyz_rgb.fadespeed = cmd[1];
 		}
 		break;
 	case CMD_SET_TIMEADJUST:
@@ -155,9 +155,10 @@ void _CYZ_CMD_execute(uint8_t* cmd) {
 		ring_buffer_push(cyz_cmd.send_buffer, cyz_cmd.addr);
 		break;
 	case CMD_GET_RGB:
-		ring_buffer_push(cyz_cmd.send_buffer, cyz_cmd.cyz_rgb->color.r);
-		ring_buffer_push(cyz_cmd.send_buffer, cyz_cmd.cyz_rgb->color.g);
-		ring_buffer_push(cyz_cmd.send_buffer, cyz_cmd.cyz_rgb->color.b);
+		ring_buffer_push(cyz_cmd.send_buffer, cyz_rgb.color.r);
+		ring_buffer_push(cyz_cmd.send_buffer, cyz_rgb.color.g);
+		ring_buffer_push(cyz_cmd.send_buffer, cyz_rgb.color.b);
+		break;
 	case CMD_GET_SCRIPT_LINE:
 	{
 		//cmd[1] is ignore: only script 0 can be read
@@ -192,7 +193,7 @@ void CYZ_CMD_load_boot_params() {
 			cyz_cmd.play_script = temp.mode;
 			cyz_cmd.script_repeats = temp.repeats;
 			if (temp.fadespeed != 0) {
-				cyz_cmd.cyz_rgb->fadespeed = temp.fadespeed;
+				cyz_rgb.fadespeed = temp.fadespeed;
 			}
 			cyz_cmd.timeadjust = temp.timeadjust;
 			//cyz_cmd.sciptno = temp.scriptno;

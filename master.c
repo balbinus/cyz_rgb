@@ -6,9 +6,10 @@
 #include "usiTwi/usiTwiMaster.h"
 
 int main(void) {
-	CYZ_CMD_GET_INSTANCE(CYZ_RGB_GET_INSTANCE());
+	CYZ_RGB_GET_INSTANCE();
+	CYZ_CMD_GET_INSTANCE();
 
-	_CYZ_RGB_set_color(255,125,50);
+	cyz_rgb.color.r = 255;
 
 
 	/*
@@ -178,9 +179,9 @@ void cyz_master_send_color() {
 	// send new color to slave
 	messageBuf[0] = TWI_GEN_CALL; // The first byte must always consist of General Call code or the TWI slave address.
 	messageBuf[1] = 'c';          // The command or data to be included in the general call.
-	messageBuf[2] = _CYZ_RGB_get()->fade_color.r;
-	messageBuf[3] = _CYZ_RGB_get()->fade_color.g;
-	messageBuf[4] = _CYZ_RGB_get()->fade_color.b;
+	messageBuf[2] = cyz_rgb.fade_color.r;
+	messageBuf[3] = cyz_rgb.fade_color.g;
+	messageBuf[4] = cyz_rgb.fade_color.b;
 	unsigned char success = USI_TWI_Start_Transceiver_With_Data( messageBuf, 5 );
 	if (!success) {
 		USI_TWI_Master_Initialise();

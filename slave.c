@@ -4,16 +4,14 @@
 #include "cyz/cyz_rgb.h"
 #include "cyz/cyz_cmd.h"
 
-Cyz_rgb* cyz_rgb;
-Cyz_cmd* cyz_cmd;
-
 int main(void)
 {
-	Cyz_cmd* cyz_cmd = CYZ_CMD_GET_INSTANCE(CYZ_RGB_GET_INSTANCE());
+	CYZ_RGB_GET_INSTANCE();
+	CYZ_CMD_GET_INSTANCE();
 
-	_CYZ_RGB_set_color(255,0,0);
+	cyz_rgb.color.r = 255;
 	CYZ_CMD_load_boot_params();
-	usiTwiSlaveInit(cyz_cmd);
+	usiTwiSlaveInit(0x0d);
 
 	TIFR   = (1 << TOV0);  /* clear interrupt flag */
 	TIMSK  = (1 << TOIE0); /* enable overflow interrupt */
@@ -25,16 +23,14 @@ int main(void)
 		while(usiTwiDataInReceiveBuffer()) {
 			_CYZ_CMD_receive_one_byte(usiTwiReceiveByte());
 		}
-		if (_CYZ_CMD_is_data_in_send_buffer()) {
-			while (_CYZ_CMD_is_data_in_send_buffer()) {
-				usiTwiTransmitByte(_CYZ_CMD_get_one_byte_from_send_buffer());
-			}
+
+		while (_CYZ_CMD_is_data_in_send_buffer()) {
+			usiTwiTransmitByte(_CYZ_CMD_get_one_byte_from_send_buffer());
 		}
 	}
 
 	return 1;
 }
-
 
 /*	Triggered when timer overflows. */
 /*  This runs fast enough that 255 calls are less than a glimpse for a human. */
@@ -44,6 +40,3 @@ ISR(SIG_OVERFLOW0)
 	_CYZ_CMD_tick();
 	_CYZ_RGB_pulse();
 }
-
-
-
