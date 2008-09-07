@@ -30,6 +30,8 @@
 #define CMD_GET_SCRIPT_LINE 'R'
 #define CMD_GET_FIRMWARE_VERSION 'Z'
 
+#define CMD_GET_DBG 'D'
+
 #define MAX_SCRIPT_LEN 10
 
 
@@ -68,6 +70,7 @@ typedef struct CYZ_CMD {
 	uint8_t addr;
 	unsigned long tick_count;
 	ring_buffer send_buffer;
+	uint8_t dbg;
 } Cyz_cmd;
 
 Cyz_cmd cyz_cmd;

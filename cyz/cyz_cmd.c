@@ -20,6 +20,7 @@ void CYZ_CMD_init() {
 	cyz_cmd.tick_count = 1;
 	cyz_cmd.send_buffer.idx_start = 0;
 	cyz_cmd.send_buffer.idx_end = 0;
+	cyz_cmd.dbg = 42;
 }
 
 /* returns the length of the command, command+payload. */
@@ -61,12 +62,17 @@ uint8_t CYZ_CMD_get_cmd_len (char cmd) {
 		return 3;
 	case CMD_GET_FIRMWARE_VERSION:
 		return 1;
+	case CMD_GET_DBG:
+		return 1;
 	}
 	return 0xFF;
 }
 
 void _CYZ_CMD_execute(uint8_t* cmd) {
 	switch (cmd[0]) {
+	case CMD_GET_DBG:
+		ring_buffer_push(cyz_cmd.send_buffer, cyz_cmd.dbg);
+		break;
 	case CMD_GO_TO_RGB:
 		cyz_rgb.color.r = cmd[1];
 		cyz_rgb.color.g = cmd[2];
