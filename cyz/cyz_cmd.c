@@ -109,6 +109,9 @@ void _CYZ_CMD_execute(uint8_t* cmd) {
 		cyz_rgb.fade_color.b = cyz_rgb.color.r + _CYZ_CMD_prng(cmd[3]);
 		break;
 	case CMD_FADE_TO_HSB:
+		_CYZ_RGB_set_fade_color_hsb(cmd[1], cmd[2], cmd[3]);
+		break;
+	case CMD_FADE_TO_RND_HSB:
 	{
 		uint8_t h,s,v;
 		_CYZ_RGB_rgb_to_hsv(cyz_rgb.color, &h, &s, &v);
@@ -118,8 +121,6 @@ void _CYZ_CMD_execute(uint8_t* cmd) {
 				v + _CYZ_CMD_prng(cmd[3]));
 	}
 	break;
-	case CMD_FADE_TO_RND_HSB:
-		break;
 	case CMD_WRITE_SCRIPT_LINE:
 	{
 		if (cmd[2] > MAX_SCRIPT_LEN-1)
