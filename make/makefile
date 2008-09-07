@@ -1,10 +1,10 @@
 RM := rm -rf
 
 # All Target
-all:  clean out/master.hex out/slave.hex test/test out/test_i2c.hex
+all:  clean out/master.hex out/slave.hex test/test_ring_buffer 
 
 #test
-test/test: out/cyz_cmd.o
+test/test_ring_buffer: 
 	gcc -Wall -Os -fpack-struct -fshort-enums -funsigned-char -funsigned-bitfields -o "out/test" "../test/test.c"
 
 #i2cmaster
