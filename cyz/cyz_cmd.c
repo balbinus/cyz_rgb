@@ -91,16 +91,19 @@ void _CYZ_CMD_execute(uint8_t* cmd) {
 	}
 	break;
 	case CMD_GO_TO_RGB:
+		cyz_rgb.fade = 0;
 		cyz_rgb.color.r = cmd[1];
 		cyz_rgb.color.g = cmd[2];
 		cyz_rgb.color.b = cmd[3];
 		break;
 	case CMD_FADE_TO_RGB:
+		cyz_rgb.fade = 1;
 		cyz_rgb.fade_color.r = cmd[1];
 		cyz_rgb.fade_color.g = cmd[2];
 		cyz_rgb.fade_color.b = cmd[3];
 		break;
 	case CMD_FADE_TO_RND_RGB:
+		cyz_rgb.fade = 1;
 		cyz_rgb.fade_color.r = cyz_rgb.color.r + _CYZ_CMD_prng(cmd[1]);
 		cyz_rgb.fade_color.g = cyz_rgb.color.r + _CYZ_CMD_prng(cmd[2]);
 		cyz_rgb.fade_color.b = cyz_rgb.color.r + _CYZ_CMD_prng(cmd[3]);
