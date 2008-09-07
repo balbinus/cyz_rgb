@@ -1,11 +1,26 @@
 #include "cyz_cmd.h"
 #include <avr/eeprom.h>
 #include <limits.h>
+#include <avr/pgmspace.h>
 #include "cyz_rgb.h"
 
 boot_parms EEMEM EEbbotp;
 uint8_t EEMEM EEaddr;
 script EEMEM EEscript;
+
+const script fl_script_rgb PROGMEM = {
+		3, // number of lines
+		0, // number of repeats
+		{
+				{ 254, {'n', 0xff,0x00,0x00}},
+				{ 254, {'n', 0x00,0xff,0x00}},
+				{ 254, {'n', 0x00,0x00,0xff}},
+		}
+};
+
+const script* scripts[] PROGMEM = {
+		&fl_script_rgb,   // 1
+};
 
 void CYZ_CMD_init() {
 	cyz_cmd.rcv_cmd_buf_cnt = 0;
@@ -20,7 +35,7 @@ void CYZ_CMD_init() {
 	cyz_cmd.tick_count = 1;
 	cyz_cmd.send_buffer.idx_start = 0;
 	cyz_cmd.send_buffer.idx_end = 0;
-	cyz_cmd.dbg = 42;
+	cyz_cmd.dbg[0] = 42;
 }
 
 /* returns the length of the command, command+payload. */
@@ -71,8 +86,10 @@ uint8_t CYZ_CMD_get_cmd_len (char cmd) {
 void _CYZ_CMD_execute(uint8_t* cmd) {
 	switch (cmd[0]) {
 	case CMD_GET_DBG:
-		ring_buffer_push(cyz_cmd.send_buffer, cyz_cmd.dbg);
-		break;
+	{
+		ring_buffer_push_array(cyz_cmd.send_buffer, cyz_cmd.dbg, 8);
+	}
+	break;
 	case CMD_GO_TO_RGB:
 		cyz_rgb.color.r = cmd[1];
 		cyz_rgb.color.g = cmd[2];
@@ -121,7 +138,7 @@ void _CYZ_CMD_execute(uint8_t* cmd) {
 		//cmd[1] is script number, currently ignore, we only play script 0
 		cyz_cmd.script_repeats = cmd[2];
 		cyz_cmd.script_pos = cmd[3];
-		cyz_cmd.play_script = 1;
+		cyz_cmd.play_script = cmd[1]+1;
 		break;
 	case CMD_STOP_SCRIPT:
 		cyz_cmd.play_script = 0;
@@ -210,11 +227,19 @@ void CYZ_CMD_load_boot_params() {
 /* to be invoked inside a timer, every time its called plays next script line, */
 /* if script is playing and there are more lines to play */
 long _CYZ_CMD_play_next_script_line() {
-	if (cyz_cmd.play_script == 1) {
+	if (cyz_cmd.play_script != 0) {
 		//TODO: load lines in memory only once
 		script_line tmp;
-		eeprom_busy_wait();
-		eeprom_read_block((void*)&tmp, (const void*)&EEscript.lines[cyz_cmd.script_pos++], 5);
+		if (cyz_cmd.play_script-1 == 0) {
+			eeprom_busy_wait();
+			eeprom_read_block((void*)&tmp, (const void*)&EEscript.lines[cyz_cmd.script_pos++], 5);
+		}
+		else {
+			script* PGMscr = ((script*)pgm_read_word(&scripts[0]));
+			cyz_cmd.script_length = pgm_read_byte(PGMscr);
+			memcpy_P(&tmp, &PGMscr->lines[cyz_cmd.script_pos++], 5);
+		}
+
 		_CYZ_CMD_execute(tmp.cmd);
 		if (cyz_cmd.script_pos == cyz_cmd.script_length) {
 			cyz_cmd.script_pos = 0;

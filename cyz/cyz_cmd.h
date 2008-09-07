@@ -70,7 +70,7 @@ typedef struct CYZ_CMD {
 	uint8_t addr;
 	unsigned long tick_count;
 	ring_buffer send_buffer;
-	uint8_t dbg;
+	uint8_t dbg[8];
 } Cyz_cmd;
 
 Cyz_cmd cyz_cmd;
