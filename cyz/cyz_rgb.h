@@ -79,7 +79,7 @@ typedef struct CYZ_RGB {
 
 Cyz_rgb cyz_rgb;
 
-void CYZ_RGB_GET_INSTANCE();
+void CYZ_RGB_init();
 void _CYZ_RGB_set_fade_color_hsb(uint8_t h, uint8_t s, uint8_t v);
 void _CYZ_RGB_pulse();
 

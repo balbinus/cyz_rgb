@@ -2,12 +2,13 @@
 #include <limits.h>
 #include "usiTwi/usiTwiSlave.h"
 #include "cyz/cyz_rgb.h"
+#include "ring_buffer.h"
 #include "cyz/cyz_cmd.h"
 
 int main(void)
 {
-	CYZ_RGB_GET_INSTANCE();
-	CYZ_CMD_GET_INSTANCE();
+	CYZ_RGB_init();
+	CYZ_CMD_init();
 
 	cyz_rgb.color.r = 255;
 	CYZ_CMD_load_boot_params();
@@ -24,8 +25,8 @@ int main(void)
 			_CYZ_CMD_receive_one_byte(usiTwiReceiveByte());
 		}
 
-		while (_CYZ_CMD_is_data_in_send_buffer()) {
-			usiTwiTransmitByte(_CYZ_CMD_get_one_byte_from_send_buffer());
+		while( ring_buffer_has_data(cyz_cmd.send_buffer)) {
+			usiTwiTransmitByte(ring_buffer_pop(cyz_cmd.send_buffer));
 		}
 	}
 

@@ -48,7 +48,11 @@ typedef struct _script_line {
     uint8_t cmd[4];    // cmd,arg1,arg2,arg3
 } script_line;
 
-
+typedef struct _script {
+    uint8_t len;  // number of script lines, 0 == blank script, not playing
+    uint8_t reps; // number of times to repeat, 0 == infinite playes
+    script_line lines[];
+} script;
 
 typedef struct CYZ_CMD {
 	script_line script[MAX_SCRIPT_LEN];
@@ -68,7 +72,7 @@ typedef struct CYZ_CMD {
 
 Cyz_cmd cyz_cmd;
 
-void CYZ_CMD_GET_INSTANCE();
+void CYZ_CMD_init();
 void _CYZ_CMD_execute(uint8_t* cmd);
 void _CYZ_CMD_receive_one_byte(uint8_t in);
 long _CYZ_CMD_play_next_script_line();

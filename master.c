@@ -6,8 +6,8 @@
 #include "usiTwi/usiTwiMaster.h"
 
 int main(void) {
-	CYZ_RGB_GET_INSTANCE();
-	CYZ_CMD_GET_INSTANCE();
+	CYZ_RGB_init();
+	CYZ_CMD_init();
 
 	cyz_rgb.color.r = 255;
 

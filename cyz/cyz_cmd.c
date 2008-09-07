@@ -4,10 +4,10 @@
 #include "cyz_rgb.h"
 
 boot_parms EEMEM EEbbotp;
-script_line EEMEM EEscript[MAX_SCRIPT_LEN];
 uint8_t EEMEM EEaddr;
+script EEMEM EEscript;
 
-void CYZ_CMD_GET_INSTANCE() {
+void CYZ_CMD_init() {
 	cyz_cmd.rcv_cmd_buf_cnt = 0;
 	cyz_cmd.rcv_cmd_len = 0xFF;
 	cyz_cmd.play_script = 0;
@@ -108,7 +108,7 @@ void _CYZ_CMD_execute(uint8_t* cmd) {
 		tmp.cmd[3] = cmd[7];
 
 		eeprom_busy_wait();
-		eeprom_write_block((void*)&tmp,(void*)&EEscript[cmd[2]], 5);
+		eeprom_write_block((void*)&tmp,(void*)&EEscript.lines[cmd[2]], 5);
 	}
 	break;
 	case CMD_PLAY_LIGHT_SCRIPT:
@@ -164,7 +164,7 @@ void _CYZ_CMD_execute(uint8_t* cmd) {
 		//cmd[1] is ignore: only script 0 can be read
 		script_line tmp;
 		eeprom_busy_wait();
-		eeprom_read_block((void*)&tmp, (const void*)&EEscript[cmd[2]], 5);
+		eeprom_read_block((void*)&tmp, (const void*)&EEscript.lines[cmd[2]], 5);
 		ring_buffer_push(cyz_cmd.send_buffer, tmp.dur);
 		ring_buffer_push(cyz_cmd.send_buffer, tmp.cmd[0]);
 		ring_buffer_push(cyz_cmd.send_buffer, tmp.cmd[1]);
@@ -208,7 +208,7 @@ long _CYZ_CMD_play_next_script_line() {
 		//TODO: load lines in memory only once
 		script_line tmp;
 		eeprom_busy_wait();
-		eeprom_read_block((void*)&tmp, (const void*)&EEscript[cyz_cmd.script_pos++], 5);
+		eeprom_read_block((void*)&tmp, (const void*)&EEscript.lines[cyz_cmd.script_pos++], 5);
 		_CYZ_CMD_execute(tmp.cmd);
 		if (cyz_cmd.script_pos == cyz_cmd.script_length) {
 			cyz_cmd.script_pos = 0;
@@ -238,14 +238,6 @@ void _CYZ_CMD_receive_one_byte(uint8_t in) {
 	else {
 		cyz_cmd.rcv_cmd_buf_cnt++;
 	}
-}
-
-uint8_t _CYZ_CMD_get_one_byte_from_send_buffer() {
-	return ring_buffer_pop(cyz_cmd.send_buffer);
-}
-
-uint8_t _CYZ_CMD_is_data_in_send_buffer() {
-	return ring_buffer_has_data(cyz_cmd.send_buffer);
 }
 
 #define M 0x7FFFFFFF  // 2^31-1, the modulus used by the psuedo-random number generator prng().

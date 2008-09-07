@@ -107,7 +107,7 @@ void _CYZ_RGB_pulse() {
 	if (cyz_rgb.color.b != 255 && cyz_rgb.pulse_count == cyz_rgb.color.b) BLU_LED_OFF;
 }
 
-void CYZ_RGB_GET_INSTANCE() {
+void CYZ_RGB_init() {
 	cyz_rgb.pulse_count = 0xFF;
 	cyz_rgb.fade = 0;
 	cyz_rgb.fadespeed = 1;
