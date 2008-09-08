@@ -111,9 +111,9 @@ void _CYZ_CMD_execute(uint8_t* cmd) {
 	{
 		uint8_t h,s,v;
 		color_rgb_to_hsv(led_curr_color, &h, &s, &v);
-		//h += _CYZ_CMD_prng(cmd[1]);
-		//s += _CYZ_CMD_prng(cmd[2]);
-		//v += _CYZ_CMD_prng(cmd[3]);
+		h += _CYZ_CMD_prng(cmd[1]);
+		s += _CYZ_CMD_prng(cmd[2]);
+		v += _CYZ_CMD_prng(cmd[3]);
 		color_hsv_to_rgb(h, s, v, &led_fade_color.r, &led_fade_color.g, &led_fade_color.b);
 	}
 	break;
@@ -133,9 +133,9 @@ void _CYZ_CMD_execute(uint8_t* cmd) {
 	}
 	break;
 	case CMD_PLAY_LIGHT_SCRIPT:
+		cyz_cmd.play_script = cmd[1]+1;
 		cyz_cmd.script_repeats = cmd[2];
 		cyz_cmd.script_pos = cmd[3];
-		cyz_cmd.play_script = cmd[1]+1;
 		break;
 	case CMD_STOP_SCRIPT:
 		cyz_cmd.play_script = 0;
@@ -265,7 +265,7 @@ uint8_t _CYZ_CMD_prng(uint8_t range) {
 	static uint8_t count = 1;
 	if (range == 0) return 0;
 	uint8_t x = ++count + cyz_cmd.tick_count;
-	return ((++x >> 4) + ((x << 3) & M) - (x >> 7) - ((x << 6) & M))%range;
+	return ((uint8_t)((++x >> 4) + ((x << 3) & M) - (x >> 7) - ((x << 6) & M)))%range;
 }
 
 void _CYZ_CMD_tick() {
