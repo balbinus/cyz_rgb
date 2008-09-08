@@ -5,12 +5,17 @@
 #include "ring_buffer.h"
 #include "cyz/cyz_cmd.h"
 
+Color led_curr_color;
+Color led_fade_color;
+uint8_t led_fade;
+uint8_t led_fadespeed;
+
 int main(void)
 {
 	CYZ_RGB_init();
 	CYZ_CMD_init();
 
-	cyz_rgb.color.r = 255;
+	led_curr_color.r = 255;
 	CYZ_CMD_load_boot_params();
 	usiTwiSlaveInit(0x0d);
 

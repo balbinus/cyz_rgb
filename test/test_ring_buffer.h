@@ -10,7 +10,7 @@ char msg[50];
 #define assert_start_end(buffer, s,e)  \
 	{ unsigned char sa = buffer.idx_start; \
 	unsigned char ea = buffer.idx_end; \
-	sprintf(msg, "buffer indices start/end should be: %d/%d, are %d/%d",s,e,sa,ea); mu_assert(msg, sa == s && ea == e); }
+	sprintf(msg, "expected %d/%d, got %d/%d",s,e,sa,ea); mu_assert(msg, sa == s && ea == e); }
 
 static char* test_push_pop() {
 	ring_buffer buffer;
@@ -106,7 +106,7 @@ static char * test_ring_buffer_push_array() {
 	return 0;
 }
 
-static char * test_ring_buffer() {
+char * test_ring_buffer() {
 	mu_run_test(test_push_pop);
 	mu_run_test(test_index_overflow);
 	mu_run_test(test_ring_buffer_push_array);

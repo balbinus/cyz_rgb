@@ -1,10 +1,13 @@
-#ifndef CYZ_CMD_H
-#define CYZ_CMD_H
+#ifndef _CYZ_CMD_H_
+#define _CYZ_CMD_H_
 /**
  * Command parser and executor
  *
  */
-#include "cyz_rgb.h"
+#include <inttypes.h>
+#include "color.h"
+#include "eeprom.h"
+#include "progmem.h"
 #include "../ring_buffer.h"
 
 #define VERSION_MAJOR 0
@@ -33,7 +36,10 @@
 #define CMD_GET_DBG 'D'
 
 #define MAX_SCRIPT_LEN 10
-
+extern Color led_curr_color;
+extern Color led_fade_color;
+extern uint8_t led_fade;
+extern uint8_t led_fadespeed;
 
 typedef struct _boot_parms {
 	uint8_t magic; // check byte to see if any data has been stored

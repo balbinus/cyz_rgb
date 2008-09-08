@@ -1,9 +1,7 @@
 #include "cyz_cmd.h"
-#include <avr/eeprom.h>
-#include <limits.h>
-#include <avr/pgmspace.h>
-#include "cyz_rgb.h"
 
+#include <limits.h>
+#include "color.h"
 boot_parms EEMEM EEbbotp;
 uint8_t EEMEM EEaddr;
 script EEMEM EEscript;
@@ -86,39 +84,37 @@ uint8_t CYZ_CMD_get_cmd_len (char cmd) {
 void _CYZ_CMD_execute(uint8_t* cmd) {
 	switch (cmd[0]) {
 	case CMD_GET_DBG:
-	{
 		ring_buffer_push_array(cyz_cmd.send_buffer, cyz_cmd.dbg, 8);
-	}
 	break;
 	case CMD_GO_TO_RGB:
-		cyz_rgb.fade = 0;
-		cyz_rgb.color.r = cmd[1];
-		cyz_rgb.color.g = cmd[2];
-		cyz_rgb.color.b = cmd[3];
+		led_fade = 0;
+		led_curr_color.r = cmd[1];
+		led_curr_color.g = cmd[2];
+		led_curr_color.b = cmd[3];
 		break;
 	case CMD_FADE_TO_RGB:
-		cyz_rgb.fade = 1;
-		cyz_rgb.fade_color.r = cmd[1];
-		cyz_rgb.fade_color.g = cmd[2];
-		cyz_rgb.fade_color.b = cmd[3];
+		led_fade = 1;
+		led_fade_color.r = cmd[1];
+		led_fade_color.g = cmd[2];
+		led_fade_color.b = cmd[3];
 		break;
 	case CMD_FADE_TO_RND_RGB:
-		cyz_rgb.fade = 1;
-		cyz_rgb.fade_color.r = cyz_rgb.color.r + _CYZ_CMD_prng(cmd[1]);
-		cyz_rgb.fade_color.g = cyz_rgb.color.r + _CYZ_CMD_prng(cmd[2]);
-		cyz_rgb.fade_color.b = cyz_rgb.color.r + _CYZ_CMD_prng(cmd[3]);
+		led_fade = 1;
+		led_fade_color.r = led_curr_color.r + _CYZ_CMD_prng(cmd[1]);
+		led_fade_color.g = led_curr_color.g + _CYZ_CMD_prng(cmd[2]);
+		led_fade_color.b = led_curr_color.b + _CYZ_CMD_prng(cmd[3]);
 		break;
 	case CMD_FADE_TO_HSB:
-		_CYZ_RGB_set_fade_color_hsb(cmd[1], cmd[2], cmd[3]);
+		color_hsv_to_rgb(cmd[1], cmd[2], cmd[3], &led_curr_color.r, &led_curr_color.g, &led_curr_color.b);
 		break;
 	case CMD_FADE_TO_RND_HSB:
 	{
 		uint8_t h,s,v;
-		_CYZ_RGB_rgb_to_hsv(cyz_rgb.color, &h, &s, &v);
-		_CYZ_RGB_set_fade_color_hsb(
-				h + _CYZ_CMD_prng(cmd[1]),
-				s + _CYZ_CMD_prng(cmd[2]),
-				v + _CYZ_CMD_prng(cmd[3]));
+		color_rgb_to_hsv(led_curr_color, &h, &s, &v);
+		//h += _CYZ_CMD_prng(cmd[1]);
+		//s += _CYZ_CMD_prng(cmd[2]);
+		//v += _CYZ_CMD_prng(cmd[3]);
+		color_hsv_to_rgb(h, s, v, &led_fade_color.r, &led_fade_color.g, &led_fade_color.b);
 	}
 	break;
 	case CMD_WRITE_SCRIPT_LINE:
@@ -126,20 +122,17 @@ void _CYZ_CMD_execute(uint8_t* cmd) {
 		if (cmd[2] > MAX_SCRIPT_LEN-1)
 			break;
 		//TODO: cmd[1] (script id) is ignored, only one script can be written
-		// cmd[2] is line number
+
 		script_line tmp;
 		tmp.dur = cmd[3];
 		tmp.cmd[0] = cmd[4];
 		tmp.cmd[1] = cmd[5];
 		tmp.cmd[2] = cmd[6];
 		tmp.cmd[3] = cmd[7];
-
-		eeprom_busy_wait();
-		eeprom_write_block((void*)&tmp,(void*)&EEscript.lines[cmd[2]], 5);
+		EEPROM_write_script_line(tmp, cmd[2]); // cmd[2] is line number
 	}
 	break;
 	case CMD_PLAY_LIGHT_SCRIPT:
-		//cmd[1] is script number, currently ignore, we only play script 0
 		cyz_cmd.script_repeats = cmd[2];
 		cyz_cmd.script_pos = cmd[3];
 		cyz_cmd.play_script = cmd[1]+1;
@@ -156,12 +149,11 @@ void _CYZ_CMD_execute(uint8_t* cmd) {
 		temp.scriptno = cmd[3];
 		temp.fadespeed = cmd[4];
 		temp.timeadjust = cmd[5];
-		eeprom_busy_wait();
-		eeprom_write_block( (void*)&temp,(void*)&EEbbotp, sizeof(boot_parms));
+		EEPROM_write_boot_parms(temp);
 	}
 	case CMD_SET_FADESPEED:
 		if (cmd[1] != 0) {
-			cyz_rgb.fadespeed = cmd[1];
+			led_fadespeed = cmd[1];
 		}
 		break;
 	case CMD_SET_TIMEADJUST:
@@ -175,28 +167,25 @@ void _CYZ_CMD_execute(uint8_t* cmd) {
 	case CMD_SET_ADDR:
 		if (cmd[2] == 0x0d && cmd[3] == 0x0d && cmd[1] == cmd[4]) {
 			cyz_cmd.addr = cmd[1];
-			eeprom_write_byte(&EEaddr,cyz_cmd.addr);
+			EEPROM_write_addr(cyz_cmd.addr);
 		}
 		break;
 	case CMD_GET_ADDR:
 		ring_buffer_push(cyz_cmd.send_buffer, cyz_cmd.addr);
 		break;
 	case CMD_GET_RGB:
-		ring_buffer_push(cyz_cmd.send_buffer, cyz_rgb.color.r);
-		ring_buffer_push(cyz_cmd.send_buffer, cyz_rgb.color.g);
-		ring_buffer_push(cyz_cmd.send_buffer, cyz_rgb.color.b);
+		ring_buffer_push(cyz_cmd.send_buffer, led_curr_color.r);
+		ring_buffer_push(cyz_cmd.send_buffer, led_curr_color.g);
+		ring_buffer_push(cyz_cmd.send_buffer, led_curr_color.b);
 		break;
+
 	case CMD_GET_SCRIPT_LINE:
 	{
 		//cmd[1] is ignore: only script 0 can be read
 		script_line tmp;
-		eeprom_busy_wait();
-		eeprom_read_block((void*)&tmp, (const void*)&EEscript.lines[cmd[2]], 5);
+		EEPROM_read_script_line(tmp, cmd[2]);
 		ring_buffer_push(cyz_cmd.send_buffer, tmp.dur);
-		ring_buffer_push(cyz_cmd.send_buffer, tmp.cmd[0]);
-		ring_buffer_push(cyz_cmd.send_buffer, tmp.cmd[1]);
-		ring_buffer_push(cyz_cmd.send_buffer, tmp.cmd[2]);
-		ring_buffer_push(cyz_cmd.send_buffer, tmp.cmd[3]);
+		ring_buffer_push_array(cyz_cmd.send_buffer, tmp.cmd, 4);
 	}
 	break;
 	case CMD_GET_FIRMWARE_VERSION:
@@ -209,24 +198,23 @@ void _CYZ_CMD_execute(uint8_t* cmd) {
 }
 
 void CYZ_CMD_load_boot_params() {
-	eeprom_busy_wait();
-	cyz_cmd.addr = eeprom_read_byte(&EEaddr);
+	EEPROM_read_addr(cyz_cmd.addr);
 
 	boot_parms temp;
-	eeprom_busy_wait();
-	eeprom_read_block((void*)&temp, (const void*)&EEbbotp, sizeof(boot_parms));
+	EEPROM_read_boot_parms(temp);
 	if (temp.magic == CYZ_CMD_BOOTP_MAGIC) {
 		if (temp.mode == 1) {
 			cyz_cmd.play_script = temp.mode;
 			cyz_cmd.script_repeats = temp.repeats;
 			if (temp.fadespeed != 0) {
-				cyz_rgb.fadespeed = temp.fadespeed;
+				led_fadespeed = temp.fadespeed;
 			}
 			cyz_cmd.timeadjust = temp.timeadjust;
 			//cyz_cmd.sciptno = temp.scriptno;
 		}
 	}
 }
+
 
 /* to be invoked inside a timer, every time its called plays next script line, */
 /* if script is playing and there are more lines to play */
@@ -235,13 +223,10 @@ long _CYZ_CMD_play_next_script_line() {
 		//TODO: load lines in memory only once
 		script_line tmp;
 		if (cyz_cmd.play_script-1 == 0) {
-			eeprom_busy_wait();
-			eeprom_read_block((void*)&tmp, (const void*)&EEscript.lines[cyz_cmd.script_pos++], 5);
+			EEPROM_read_script_line(tmp, cyz_cmd.script_pos++);
 		}
 		else {
-			script* PGMscr = ((script*)pgm_read_word(&scripts[0]));
-			cyz_cmd.script_length = pgm_read_byte(PGMscr);
-			memcpy_P(&tmp, &PGMscr->lines[cyz_cmd.script_pos++], 5);
+			PROGMEM_read_script_line(tmp, 0, cyz_cmd.script_pos++)
 		}
 
 		_CYZ_CMD_execute(tmp.cmd);

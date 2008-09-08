@@ -1,7 +1,5 @@
-#ifndef CYZ_RGB_H
-#define CYZ_RGB_H
-
-
+#ifndef _CYZ_RGB_H_
+#define _CYZ_RGB_H_
 
 /*****************************************************************************
  *	Codalyze PWM RGB: A very basic implementation of pulse-width modulation (PWM) on an AVR controller with
@@ -44,6 +42,7 @@
 /* select port and data direction register on which pin leds are */
 #include <stdlib.h>
 #include <avr/io.h>
+#include "color.h"
 #define PWM_PORT PORTB
 #define PWM_DDR DDRB
 
@@ -63,37 +62,19 @@
 #define GRN_LED_ON PWM_PORT |= 1<<PINGRN
 #define BLU_LED_ON PWM_PORT |= 1<<PINBLU
 
-typedef struct _color {
-    uint8_t r;
-	uint8_t g;
-	uint8_t b;
-} Color;
+
 
 typedef struct CYZ_RGB {
 	uint8_t pulse_count;
-	uint8_t fade;
-	uint8_t fadespeed;
-	Color color;
-	Color fade_color;
 } Cyz_rgb;
 
 Cyz_rgb cyz_rgb;
 
 void CYZ_RGB_init();
-void _CYZ_RGB_set_fade_color_hsb(uint8_t h, uint8_t s, uint8_t v);
 void _CYZ_RGB_pulse();
 
-void _CYZ_RGB_rgb_to_hsv(Color rgb, uint8_t* hue, uint8_t* sat, uint8_t* val);
 
 #define MIN(a, b)  (((a) < (b)) ? (a) : (b))
-#define MIN3(x,y,z)  ((y) <= (z) ? \
-                         ((x) <= (y) ? (x) : (y)) \
-                     : \
-                         ((x) <= (z) ? (x) : (z)))
 
-#define MAX3(x,y,z)  ((y) >= (z) ? \
-                         ((x) >= (y) ? (x) : (y)) \
-                     : \
-                         ((x) >= (z) ? (x) : (z)))
 
 #endif
