@@ -66,7 +66,7 @@ static char * test_index_overflow() {
 	buffer.idx_end = 0;
 	int i = 0;
 	for (i=0; i<2000; i++) {
-		assert_start_end(buffer, i%256, i%256);
+		assert_start_end(buffer, (i%256), (i%256));
 		ring_buffer_push(buffer, i);
 		assert_start_end(buffer, i%256, (i+1)%256);
 		char msg[20];

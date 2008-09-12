@@ -145,8 +145,12 @@ void _CYZ_CMD_execute(uint8_t* cmd) {
 	{
 		boot_parms temp;
 		temp.magic = CYZ_CMD_BOOTP_MAGIC;
-		temp.mode = cmd[1];
-		temp.scriptno = cmd[2];
+		if (cmd[1] > 0) {
+			temp.mode = cmd[2]+1;
+		}
+		else {
+			temp.mode = 0;
+		}
 		temp.repeats = cmd[3];
 		temp.fadespeed = cmd[4];
 		temp.timeadjust = cmd[5];
@@ -204,7 +208,7 @@ void CYZ_CMD_load_boot_params() {
 	boot_parms temp;
 	EEPROM_read_boot_parms(temp);
 	if (temp.magic == CYZ_CMD_BOOTP_MAGIC) {
-		if (temp.mode == 1) {
+		if (temp.mode > 0) {
 			cyz_cmd.play_script = temp.mode;
 			cyz_cmd.script_repeats = temp.repeats;
 			if (temp.fadespeed != 0) {

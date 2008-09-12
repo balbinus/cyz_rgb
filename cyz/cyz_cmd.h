@@ -44,11 +44,9 @@ extern uint8_t led_fadespeed;
 typedef struct _boot_parms {
 	uint8_t magic; // check byte to see if any data has been stored
 	uint8_t mode; // 0 do nothing, 1 play light script
-	uint8_t scriptno; // which script to play if mode==1
 	uint8_t repeats; // number of repetitions
 	uint8_t fadespeed;
 	int8_t timeadjust;
-	uint8_t addr;
 } boot_parms;
 
 typedef struct _script_line {

@@ -184,16 +184,28 @@ static char * test_execute_write_script_line() {
 	return 0;
 }
 
-static char * test_execute_set_boot_parms() {
+static char * test_execute_set_boot_parms_mode_play() {
 	CYZ_CMD_init();
-	uint8_t cmd[] = {'B', 'm', 'n', 'r', 'f', 't'};
+	uint8_t cmd[] = {'B', 1, 5, 'r', 'f', 't'};
 	_CYZ_CMD_execute(cmd);
 	mu_assert_eq(CYZ_CMD_BOOTP_MAGIC, mock_buf[0]);
-	mu_assert_eq('m', mock_buf[1]);
-	mu_assert_eq('n', mock_buf[2]);
-	mu_assert_eq('r', mock_buf[3]);
-	mu_assert_eq('f', mock_buf[4]);
-	mu_assert_eq('t', mock_buf[5]);
+	mu_assert_eq(5+1, mock_buf[1]);
+	mu_assert_eq('f', mock_buf[3]);
+	mu_assert_eq('t', mock_buf[4]);
+	mu_assert_eq(0, mock_buf[5]);
+	return 0;
+}
+
+static char * test_execute_set_boot_parms_mode_no_play() {
+	CYZ_CMD_init();
+		uint8_t cmd[] = {'B', 0, 5, 'r', 'f', 't'};
+		_CYZ_CMD_execute(cmd);
+		mu_assert_eq(CYZ_CMD_BOOTP_MAGIC, mock_buf[0]);
+		mu_assert_eq(0, mock_buf[1]);
+		mu_assert_eq('f', mock_buf[3]);
+		mu_assert_eq('t', mock_buf[4]);
+		mu_assert_eq(0, mock_buf[5]);
+		return 0;
 
 	return 0;
 }
@@ -216,6 +228,38 @@ static char * test_execute_get_script_line() {
 	return 0;
 }
 
+static char * test_load_boot_params_if_magic() {
+	CYZ_CMD_init();
+	led_fadespeed = 0;
+	mock_buf[0] = CYZ_CMD_BOOTP_MAGIC;
+	mock_buf[1] = 34;
+	mock_buf[2] = 45;
+	mock_buf[3] = 56;
+	mock_buf[4] = 67;
+	CYZ_CMD_load_boot_params();
+	mu_assert_eq(34, cyz_cmd.play_script);
+	mu_assert_eq(45, cyz_cmd.script_repeats);
+	mu_assert_eq(56, led_fadespeed);
+	mu_assert_eq(67, cyz_cmd.timeadjust);
+	return 0;
+}
+
+static char * test_load_boot_params_if_no_magic() {
+	CYZ_CMD_init();
+	led_fadespeed = 0;
+	mock_buf[0] = 0;
+	mock_buf[1] = 34;
+	mock_buf[2] = 45;
+	mock_buf[3] = 56;
+	mock_buf[4] = 67;
+	CYZ_CMD_load_boot_params();
+	mu_assert_eq(0, cyz_cmd.play_script);
+	mu_assert_eq(0, cyz_cmd.script_repeats);
+	mu_assert_eq(0, led_fadespeed);
+	mu_assert_eq(0, cyz_cmd.timeadjust);
+	return 0;
+}
+
 static char * test_cyz_cmd() {
 	mu_run_test(test_execute_go_to_rgb);
 	mu_run_test(test_execute_fade_to_rgb);
@@ -225,7 +269,8 @@ static char * test_cyz_cmd() {
 	mu_run_test(test_execute_write_script_line);
 	mu_run_test(test_execute_play_light_script);
 	mu_run_test(test_execute_stop_script);
-	mu_run_test(test_execute_set_boot_parms);
+	mu_run_test(test_execute_set_boot_parms_mode_play);
+	mu_run_test(test_execute_set_boot_parms_mode_no_play);
 	mu_run_test(test_execute_set_timeadjiust);
 	mu_run_test(test_execute_set_fadespeed);
 	mu_run_test(test_execute_set_len_repeats);
@@ -246,7 +291,8 @@ static char * test_cyz_cmd() {
 	//mu_run_test(test_play_next_script_line_progmem);
 
 	//mu_run_test(test_receive_one_byte);
-	// mu_run_test(test_load_boot_params);
+	mu_run_test(test_load_boot_params_if_magic);
+	mu_run_test(test_load_boot_params_if_no_magic);
 	//mu_run_test(test_cmd_tick);
 
 	//mu_run_test(test_init);
