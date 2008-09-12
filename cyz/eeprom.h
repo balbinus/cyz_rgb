@@ -32,7 +32,8 @@
 uint8_t mock_buf[6];
 #define mock_empty_buffer memset(&mock_buf, 0, 6);
 #define EEPROM_read_script_line(dest, lineno) \
-	memcpy(&dest, &mock_buf, 5);
+	memcpy(&dest, &mock_buf, 5); \
+	mock_buf[5] = lineno;
 #define EEPROM_read_boot_parms(dest) \
 	memcpy(&dest, &mock_buf, 6);
 #define EEPROM_read_addr(addr)

@@ -30,7 +30,7 @@ void CYZ_CMD_init() {
 	cyz_cmd.script_repeated = 0;
 	cyz_cmd.timeadjust = 0;
 	cyz_cmd.addr = 0x0d;
-	cyz_cmd.tick_count = 1;
+	cyz_cmd.tick_count = 0;
 	cyz_cmd.send_buffer.idx_start = 0;
 	cyz_cmd.send_buffer.idx_end = 0;
 	cyz_cmd.dbg[0] = 42;
@@ -85,7 +85,7 @@ void _CYZ_CMD_execute(uint8_t* cmd) {
 	switch (cmd[0]) {
 	case CMD_GET_DBG:
 		ring_buffer_push_array(cyz_cmd.send_buffer, cyz_cmd.dbg, 8);
-	break;
+		break;
 	case CMD_GO_TO_RGB:
 		led_fade = 0;
 		led_curr_color.r = cmd[1];
@@ -137,6 +137,7 @@ void _CYZ_CMD_execute(uint8_t* cmd) {
 		cyz_cmd.play_script = cmd[1]+1;
 		cyz_cmd.script_repeats = cmd[2];
 		cyz_cmd.script_pos = cmd[3];
+		cyz_cmd.tick_count = 0;
 		break;
 	case CMD_STOP_SCRIPT:
 		cyz_cmd.play_script = 0;
@@ -223,30 +224,28 @@ void CYZ_CMD_load_boot_params() {
 
 /* to be invoked inside a timer, every time its called plays next script line, */
 /* if script is playing and there are more lines to play */
-long _CYZ_CMD_play_next_script_line() {
-	if (cyz_cmd.play_script != 0) {
-		//TODO: load lines in memory only once
-		script_line tmp;
-		if (cyz_cmd.play_script-1 == 0) {
-			EEPROM_read_script_line(tmp, cyz_cmd.script_pos++);
-		}
-		else {
-			PROGMEM_read_script_line(tmp, 0, cyz_cmd.script_pos++)
-		}
-
-		_CYZ_CMD_execute(tmp.cmd);
-		if (cyz_cmd.script_pos == cyz_cmd.script_length) {
-			cyz_cmd.script_pos = 0;
-			cyz_cmd.script_repeated++;
-			if (cyz_cmd.script_repeats > 0 && cyz_cmd.script_repeated >= cyz_cmd.script_repeats){
-				cyz_cmd.play_script = 0;
-				cyz_cmd.script_repeated = 0;
-			}
-		}
-
-		return tmp.dur + cyz_cmd.timeadjust;
+uint8_t _CYZ_CMD_play_next_script_line() {
+	//TODO: load lines in memory only once
+	script_line tmp;
+	if (cyz_cmd.play_script-1 == 0) {
+		EEPROM_read_script_line(tmp, cyz_cmd.script_pos);
 	}
-	return -1;
+	else {
+		PROGMEM_read_script_line(tmp, 0, cyz_cmd.script_pos)
+	}
+
+	cyz_cmd.script_pos++;
+	_CYZ_CMD_execute(tmp.cmd);
+
+	if (cyz_cmd.script_pos == cyz_cmd.script_length) {
+		cyz_cmd.script_pos = 0;
+		if (cyz_cmd.script_repeats > 0 && ++cyz_cmd.script_repeated >= cyz_cmd.script_repeats){
+			cyz_cmd.play_script = 0;
+			cyz_cmd.script_repeated = 0;
+		}
+	}
+
+	return tmp.dur + cyz_cmd.timeadjust;
 }
 
 void _CYZ_CMD_receive_one_byte(uint8_t in) {
@@ -274,12 +273,8 @@ uint8_t _CYZ_CMD_prng(uint8_t range) {
 }
 
 void _CYZ_CMD_tick() {
-	if (--cyz_cmd.tick_count == 0) {
-		long duration = _CYZ_CMD_play_next_script_line();
-		if (duration == -1)
-			cyz_cmd.tick_count = UINT_MAX;
-		else {
-			cyz_cmd.tick_count = duration * 255;
-		}
+	if (cyz_cmd.play_script && cyz_cmd.tick_count++ == 0) {
+		uint8_t duration = _CYZ_CMD_play_next_script_line();
+		cyz_cmd.tick_count = -duration;
 	}
 }

@@ -61,7 +61,6 @@ typedef struct _script {
 } script;
 
 typedef struct CYZ_CMD {
-	script_line script[MAX_SCRIPT_LEN];
 	uint8_t rcv_cmd_buf[8];
 	uint8_t rcv_cmd_buf_cnt;
 	uint8_t rcv_cmd_len;
@@ -72,7 +71,7 @@ typedef struct CYZ_CMD {
 	uint8_t script_repeated;
 	uint8_t timeadjust;
 	uint8_t addr;
-	unsigned long tick_count;
+	uint8_t tick_count;
 	ring_buffer send_buffer;
 	uint8_t dbg[8];
 } Cyz_cmd;
@@ -82,7 +81,7 @@ Cyz_cmd cyz_cmd;
 void CYZ_CMD_init();
 void _CYZ_CMD_execute(uint8_t* cmd);
 void _CYZ_CMD_receive_one_byte(uint8_t in);
-long _CYZ_CMD_play_next_script_line();
+uint8_t _CYZ_CMD_play_next_script_line();
 void CYZ_CMD_load_boot_params();
 void _CYZ_CMD_tick();
 uint8_t _CYZ_CMD_prng(uint8_t range);

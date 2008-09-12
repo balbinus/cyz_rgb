@@ -139,11 +139,13 @@ static char* test_execute_play_light_script() {
 	cyz_cmd.play_script = 33;
 	cyz_cmd.script_length = 44;
 	cyz_cmd.script_repeats = 55;
+	cyz_cmd.tick_count = 99;
 	uint8_t cmd[] = {'p', 12, 22, 52};
 	_CYZ_CMD_execute(cmd);
 	mu_assert_eq(13, cyz_cmd.play_script);
 	mu_assert_eq(22, cyz_cmd.script_repeats);
 	mu_assert_eq(52, cyz_cmd.script_pos);
+	mu_assert_eq(0, cyz_cmd.tick_count);
 	return 0;
 }
 
@@ -198,14 +200,14 @@ static char * test_execute_set_boot_parms_mode_play() {
 
 static char * test_execute_set_boot_parms_mode_no_play() {
 	CYZ_CMD_init();
-		uint8_t cmd[] = {'B', 0, 5, 'r', 'f', 't'};
-		_CYZ_CMD_execute(cmd);
-		mu_assert_eq(CYZ_CMD_BOOTP_MAGIC, mock_buf[0]);
-		mu_assert_eq(0, mock_buf[1]);
-		mu_assert_eq('f', mock_buf[3]);
-		mu_assert_eq('t', mock_buf[4]);
-		mu_assert_eq(0, mock_buf[5]);
-		return 0;
+	uint8_t cmd[] = {'B', 0, 5, 'r', 'f', 't'};
+	_CYZ_CMD_execute(cmd);
+	mu_assert_eq(CYZ_CMD_BOOTP_MAGIC, mock_buf[0]);
+	mu_assert_eq(0, mock_buf[1]);
+	mu_assert_eq('f', mock_buf[3]);
+	mu_assert_eq('t', mock_buf[4]);
+	mu_assert_eq(0, mock_buf[5]);
+	return 0;
 
 	return 0;
 }
@@ -260,6 +262,223 @@ static char * test_load_boot_params_if_no_magic() {
 	return 0;
 }
 
+static char * test_init() {
+	cyz_cmd.addr = 11;
+	cyz_cmd.script_length = 22;
+	cyz_cmd.script_pos = 33;
+	cyz_cmd.script_repeats = 33;
+	cyz_cmd.script_repeated = 44;
+	cyz_cmd.timeadjust = 55;
+	cyz_cmd.tick_count = 66;
+	cyz_cmd.send_buffer.idx_end = 77;
+	cyz_cmd.send_buffer.idx_start = 88;
+	CYZ_CMD_init();
+	mu_assert_eq(0x0d, cyz_cmd.addr);
+	mu_assert_eq(0, cyz_cmd.script_length);
+	mu_assert_eq(0, cyz_cmd.script_pos);
+	mu_assert_eq(0, cyz_cmd.script_repeated);
+	mu_assert_eq(0, cyz_cmd.timeadjust);
+	mu_assert_eq(0, cyz_cmd.tick_count);
+	mu_assert_eq(0, cyz_cmd.send_buffer.idx_end);
+	mu_assert_eq(0, cyz_cmd.send_buffer.idx_start);
+	return 0;
+}
+
+static char * test_tick() {
+	CYZ_CMD_init();
+	cyz_cmd.play_script = 1;
+	mock_buf[0] = 255;
+	_CYZ_CMD_tick();
+	mu_assert_eq(1, cyz_cmd.tick_count);
+	_CYZ_CMD_tick();
+	mu_assert_eq(2, cyz_cmd.tick_count);
+
+	cyz_cmd.tick_count = 0;
+	int i;
+	for (i=0; i<256; i++) {
+		_CYZ_CMD_tick();
+	}
+	mu_assert_eq(0, cyz_cmd.tick_count);
+	return 0;
+}
+
+static char * test_tick_play() {
+	CYZ_CMD_init();
+	cyz_cmd.play_script = 1;
+	cyz_cmd.script_length = 5;
+	cyz_cmd.tick_count = 0;
+	mock_buf[0] = 100;
+	_CYZ_CMD_tick();
+	mu_assert_eq(-100, cyz_cmd.tick_count);
+	int i;
+	for (i=0; i<100; i++) {
+		_CYZ_CMD_tick();
+	}
+	mu_assert_eq(0, cyz_cmd.tick_count);
+	mock_buf[0] = 44;
+	_CYZ_CMD_tick();
+	mu_assert_eq(-44, cyz_cmd.tick_count);
+	cyz_cmd.tick_count = 0;
+	mock_buf[0] = 255;
+	for (i=0; i<255; i++) {
+		_CYZ_CMD_tick();
+	}
+	mu_assert_eq(255, cyz_cmd.tick_count);
+	return 0;
+}
+
+static char * test_tick_no_play() {
+	CYZ_CMD_init();
+	mu_assert_eq(0, cyz_cmd.tick_count);
+	_CYZ_CMD_tick();
+	mu_assert_eq(0, cyz_cmd.tick_count);
+	return 0;
+}
+
+static char * test_play_next_script_line_eeprom() {
+	CYZ_CMD_init();
+	cyz_cmd.play_script = 1;
+	cyz_cmd.timeadjust = 0;
+	cyz_cmd.script_length = 5;
+	cyz_cmd.script_repeats = 0;
+	mock_buf[0] = 66;
+	mu_assert_eq(0, cyz_cmd.script_pos);
+	mu_assert_eq(66, _CYZ_CMD_play_next_script_line());
+	mu_assert_eq(1, cyz_cmd.script_pos);
+	mu_assert_eq(0, cyz_cmd.script_repeated);
+	mu_assert_eq(0, mock_buf[5]);
+	mu_assert_eq(66, _CYZ_CMD_play_next_script_line());
+	mu_assert_eq(2, cyz_cmd.script_pos);
+	mu_assert_eq(0, cyz_cmd.script_repeated);
+	mu_assert_eq(1, mock_buf[5]);
+	mu_assert_eq(66, _CYZ_CMD_play_next_script_line());
+	mu_assert_eq(3, cyz_cmd.script_pos);
+	mu_assert_eq(0, cyz_cmd.script_repeated);
+	mu_assert_eq(2, mock_buf[5]);
+	mu_assert_eq(66, _CYZ_CMD_play_next_script_line());
+	mu_assert_eq(4, cyz_cmd.script_pos);
+	mu_assert_eq(0, cyz_cmd.script_repeated);
+	mu_assert_eq(3, mock_buf[5]);
+	mu_assert_eq(66, _CYZ_CMD_play_next_script_line());
+	mu_assert_eq(0, cyz_cmd.script_pos);
+	mu_assert_eq(0, cyz_cmd.script_repeated);
+	mu_assert_eq(4, mock_buf[5]);
+	mu_assert_eq(66, _CYZ_CMD_play_next_script_line());
+	mu_assert_eq(1, cyz_cmd.script_pos);
+	mu_assert_eq(0, cyz_cmd.script_repeated);
+	mu_assert_eq(0, mock_buf[5]);
+
+	int i = 0;
+	cyz_cmd.script_pos = 0;
+	for(i=0; i<1000; i++) {
+		mock_buf[0] = i;
+		mock_buf[1] = 'n';
+		mock_buf[2] = i;
+		mock_buf[3] = i+1;
+		mock_buf[4] = i+2;
+		mu_assert_eq(i, _CYZ_CMD_play_next_script_line());
+		mu_assert_eq(i, led_curr_color.r);
+		mu_assert_eq(i+1, led_curr_color.g);
+		mu_assert_eq(i+2, led_curr_color.b);
+		mu_assert_eq((i+1)%5, cyz_cmd.script_pos);
+		mu_assert_eq(0, cyz_cmd.script_repeated);
+	}
+
+	cyz_cmd.script_pos = 0;
+	cyz_cmd.script_repeats = 10;
+	for(i=0; i<50; i++) {
+		mock_buf[0] = i;
+		mock_buf[1] = 'n';
+		mock_buf[2] = i;
+		mock_buf[3] = i+1;
+		mock_buf[4] = i+2;
+		mu_assert_eq(i, _CYZ_CMD_play_next_script_line());
+		mu_assert_eq(i, led_curr_color.r);
+		mu_assert_eq(i+1, led_curr_color.g);
+		mu_assert_eq(i+2, led_curr_color.b);
+		mu_assert_eq((i+1)%5, cyz_cmd.script_pos);
+		if (i<49) {
+			mu_assert_eq(((i+1)/5), cyz_cmd.script_repeated);
+		} else {
+			mu_assert_eq(0, cyz_cmd.script_repeated);
+		}
+	}
+
+	return 0;
+}
+
+static char * test_play_next_script_line_progmem() {
+	CYZ_CMD_init();
+	cyz_cmd.play_script = 2;
+	cyz_cmd.timeadjust = 0;
+	cyz_cmd.script_length = 5;
+	cyz_cmd.script_repeats = 0;
+	mock_buf[0] = 66;
+	mu_assert_eq(0, cyz_cmd.script_pos);
+	mu_assert_eq(66, _CYZ_CMD_play_next_script_line());
+	mu_assert_eq(1, cyz_cmd.script_pos);
+	mu_assert_eq(0, cyz_cmd.script_repeated);
+	mu_assert_eq(0, mock_buf[5]);
+	mu_assert_eq(66, _CYZ_CMD_play_next_script_line());
+	mu_assert_eq(2, cyz_cmd.script_pos);
+	mu_assert_eq(0, cyz_cmd.script_repeated);
+	mu_assert_eq(1, mock_buf[5]);
+	mu_assert_eq(66, _CYZ_CMD_play_next_script_line());
+	mu_assert_eq(3, cyz_cmd.script_pos);
+	mu_assert_eq(0, cyz_cmd.script_repeated);
+	mu_assert_eq(2, mock_buf[5]);
+	mu_assert_eq(66, _CYZ_CMD_play_next_script_line());
+	mu_assert_eq(4, cyz_cmd.script_pos);
+	mu_assert_eq(0, cyz_cmd.script_repeated);
+	mu_assert_eq(3, mock_buf[5]);
+	mu_assert_eq(66, _CYZ_CMD_play_next_script_line());
+	mu_assert_eq(0, cyz_cmd.script_pos);
+	mu_assert_eq(0, cyz_cmd.script_repeated);
+	mu_assert_eq(4, mock_buf[5]);
+	mu_assert_eq(66, _CYZ_CMD_play_next_script_line());
+	mu_assert_eq(1, cyz_cmd.script_pos);
+	mu_assert_eq(0, cyz_cmd.script_repeated);
+	mu_assert_eq(0, mock_buf[5]);
+
+	int i = 0;
+	cyz_cmd.script_pos = 0;
+	for(i=0; i<1000; i++) {
+		mock_buf[0] = i;
+		mock_buf[1] = 'n';
+		mock_buf[2] = i;
+		mock_buf[3] = i+1;
+		mock_buf[4] = i+2;
+		mu_assert_eq(i, _CYZ_CMD_play_next_script_line());
+		mu_assert_eq(i, led_curr_color.r);
+		mu_assert_eq(i+1, led_curr_color.g);
+		mu_assert_eq(i+2, led_curr_color.b);
+		mu_assert_eq((i+1)%5, cyz_cmd.script_pos);
+		mu_assert_eq(0, cyz_cmd.script_repeated);
+	}
+
+	cyz_cmd.script_pos = 0;
+	cyz_cmd.script_repeats = 10;
+	for(i=0; i<50; i++) {
+		mock_buf[0] = i;
+		mock_buf[1] = 'n';
+		mock_buf[2] = i;
+		mock_buf[3] = i+1;
+		mock_buf[4] = i+2;
+		mu_assert_eq(i, _CYZ_CMD_play_next_script_line());
+		mu_assert_eq(i, led_curr_color.r);
+		mu_assert_eq(i+1, led_curr_color.g);
+		mu_assert_eq(i+2, led_curr_color.b);
+		mu_assert_eq((i+1)%5, cyz_cmd.script_pos);
+		if (i<49) {
+			mu_assert_eq(((i+1)/5), cyz_cmd.script_repeated);
+		} else {
+			mu_assert_eq(0, cyz_cmd.script_repeated);
+		}
+	}
+
+	return 0;
+}
+
 static char * test_cyz_cmd() {
 	mu_run_test(test_execute_go_to_rgb);
 	mu_run_test(test_execute_fade_to_rgb);
@@ -286,16 +505,17 @@ static char * test_cyz_cmd() {
 
 	mu_run_test(test_prng);
 
-	//mu_run_test(test_play_next_script_line_eeprom);
-	//mu_run_test(test_play_next_script_line_not_playing);
-	//mu_run_test(test_play_next_script_line_progmem);
+	mu_run_test(test_play_next_script_line_eeprom);
+	mu_run_test(test_play_next_script_line_progmem);
 
 	//mu_run_test(test_receive_one_byte);
 	mu_run_test(test_load_boot_params_if_magic);
 	mu_run_test(test_load_boot_params_if_no_magic);
-	//mu_run_test(test_cmd_tick);
+	mu_run_test(test_tick);
+	mu_run_test(test_tick_play);
+	mu_run_test(test_tick_no_play);
 
-	//mu_run_test(test_init);
+	mu_run_test(test_init);
 
 	return 0;
 }
