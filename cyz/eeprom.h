@@ -25,12 +25,24 @@
 	eeprom_busy_wait(); \
 	eeprom_write_block((void*)&src,(void*)&EEscript.lines[lineno], 5);
 #else
-#define EEPROM_read_script_line(dest, lineno)
+/** mock macros defined when in test mode.
+ * regular implementation compiles only with avr-gcc.
+ * mock_buf is the destination for _write operations and source for _read ops **/
+#include <string.h>
+uint8_t mock_buf[6];
+#define mock_empty_buffer memset(&mock_buf, 0, 6);
+#define EEPROM_read_script_line(dest, lineno) \
+	memcpy(&dest, &mock_buf, 5);
 #define EEPROM_read_boot_parms(dest)
 #define EEPROM_read_addr(addr)
 #define EEPROM_write_addr(addr)
-#define EEPROM_write_boot_parms(src)
-#define EEPROM_write_script_line(src, lineno)
+#define EEPROM_write_boot_parms(src) \
+	mock_empty_buffer \
+	memcpy(&mock_buf, &src, 6);
+#define EEPROM_write_script_line(src, lineno) \
+	mock_empty_buffer \
+	memcpy(&mock_buf, &src, 5); \
+	mock_buf[5] = lineno;
 #define EEMEM
 
 #endif

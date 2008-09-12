@@ -170,22 +170,86 @@ static char* test_execute_fade_to_rnd_rgb() {
 	return 0;
 }
 
+static char * test_execute_write_script_line() {
+	CYZ_CMD_init();
+	uint8_t cmd[] = {'W', 0,5,133,'X',190,160,130};
+	_CYZ_CMD_execute(cmd);
+	mu_assert_eq(5, mock_buf[5]); //lineno
+	mu_assert_eq(133, mock_buf[0]); //dur
+	mu_assert_eq('X', mock_buf[1]); //cmd[0]
+	mu_assert_eq(190, mock_buf[2]); //cmd[1]
+	mu_assert_eq(160, mock_buf[3]); //cmd[2]
+	mu_assert_eq(130, mock_buf[4]); //cmd[3]
+
+	return 0;
+}
+
+static char * test_execute_set_boot_parms() {
+	CYZ_CMD_init();
+	uint8_t cmd[] = {'B', 'm', 'n', 'r', 'f', 't'};
+	_CYZ_CMD_execute(cmd);
+	mu_assert_eq(CYZ_CMD_BOOTP_MAGIC, mock_buf[0]);
+	mu_assert_eq('m', mock_buf[1]);
+	mu_assert_eq('n', mock_buf[2]);
+	mu_assert_eq('r', mock_buf[3]);
+	mu_assert_eq('f', mock_buf[4]);
+	mu_assert_eq('t', mock_buf[5]);
+
+	return 0;
+}
+
+static char * test_execute_get_script_line() {
+	CYZ_CMD_init();
+	uint8_t cmd[] = {'R', 0, 2};
+	mock_buf[0] = 'd';
+	mock_buf[1] = 'c';
+	mock_buf[2] = 'A';
+	mock_buf[3] = 'B';
+	mock_buf[4] = 'C';
+	_CYZ_CMD_execute(cmd);
+	mu_assert_eq('d', ring_buffer_pop(cyz_cmd.send_buffer));
+	mu_assert_eq('c', ring_buffer_pop(cyz_cmd.send_buffer));
+	mu_assert_eq('A', ring_buffer_pop(cyz_cmd.send_buffer));
+	mu_assert_eq('B', ring_buffer_pop(cyz_cmd.send_buffer));
+	mu_assert_eq('C', ring_buffer_pop(cyz_cmd.send_buffer));
+
+	return 0;
+}
+
 static char * test_cyz_cmd() {
 	mu_run_test(test_execute_go_to_rgb);
 	mu_run_test(test_execute_fade_to_rgb);
-	mu_run_test(test_execute_get_addr);
+	mu_run_test(test_execute_fade_to_rnd_rgb);
+	// CMD_FADE_TO_HSB
+	// CMD_FADE_TO_RND_HSB
+	mu_run_test(test_execute_write_script_line);
+	mu_run_test(test_execute_play_light_script);
+	mu_run_test(test_execute_stop_script);
+	mu_run_test(test_execute_set_boot_parms);
+	mu_run_test(test_execute_set_timeadjiust);
+	mu_run_test(test_execute_set_fadespeed);
+	mu_run_test(test_execute_set_len_repeats);
 	mu_run_test(test_execute_set_addr);
 	mu_run_test(test_execute_set_addr_addr_nomatch);
 	mu_run_test(test_execute_set_addr_check_nomatch);
 	mu_run_test(test_execute_set_addr_check_incorrect);
+	mu_run_test(test_execute_get_addr);
 	mu_run_test(test_execute_get_rgb);
-	mu_run_test(test_execute_set_fadespeed);
-	mu_run_test(test_execute_stop_script);
+	mu_run_test(test_execute_get_script_line);
 	mu_run_test(test_execute_get_firmware_version);
-	mu_run_test(test_execute_set_len_repeats);
-	mu_run_test(test_execute_set_timeadjiust);
-	mu_run_test(test_execute_play_light_script);
+	// CMD_GET_DBG
+
 	mu_run_test(test_prng);
-	mu_run_test(test_execute_fade_to_rnd_rgb);
+
+	//mu_run_test(test_play_next_script_line_eeprom);
+	//mu_run_test(test_play_next_script_line_not_playing);
+	//mu_run_test(test_play_next_script_line_progmem);
+
+	//mu_run_test(test_receive_one_byte);
+	// mu_run_test(test_load_boot_params);
+	//mu_run_test(test_cmd_tick);
+
+	//mu_run_test(test_init);
+
 	return 0;
 }

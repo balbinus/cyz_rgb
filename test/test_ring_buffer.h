@@ -106,9 +106,40 @@ static char * test_ring_buffer_push_array() {
 	return 0;
 }
 
+char * test_ring_buffer_has_data() {
+	ring_buffer buffer;
+	buffer.idx_start = 0;
+	buffer.idx_end = 0;
+	mu_assert("buffer should not have data", !ring_buffer_has_data(buffer));
+	uint8_t array[8] = { 1,2,3,4,5,6,7,8 };
+	ring_buffer_push_array(buffer, array, 4 );
+	mu_assert("buffer should have data", ring_buffer_has_data(buffer));
+
+	ring_buffer_pop(buffer);
+	mu_assert("buffer should have data", ring_buffer_has_data(buffer));
+	ring_buffer_pop(buffer);
+	mu_assert("buffer should have data", ring_buffer_has_data(buffer));
+	ring_buffer_pop(buffer);
+	mu_assert("buffer should have data", ring_buffer_has_data(buffer));
+	ring_buffer_pop(buffer);
+
+	mu_assert("buffer should not have data", !(ring_buffer_has_data(buffer)));
+
+	ring_buffer_push_array(buffer, array, 4 );
+	mu_assert("buffer should have data", ring_buffer_has_data(buffer));
+
+	while(ring_buffer_has_data(buffer)) {
+		ring_buffer_pop(buffer);
+	}
+	mu_assert("buffer should not have data", !(ring_buffer_has_data(buffer)));
+
+	return 0;
+}
+
 char * test_ring_buffer() {
 	mu_run_test(test_push_pop);
 	mu_run_test(test_index_overflow);
 	mu_run_test(test_ring_buffer_push_array);
+	mu_run_test(test_ring_buffer_has_data);
 	return 0;
 }

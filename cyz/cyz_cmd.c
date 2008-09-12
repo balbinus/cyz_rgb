@@ -94,6 +94,7 @@ void _CYZ_CMD_execute(uint8_t* cmd) {
 		break;
 	case CMD_FADE_TO_RGB:
 		led_fade = 1;
+		//memcpy(&cmd[0], &led_fade_color, 3);
 		led_fade_color.r = cmd[1];
 		led_fade_color.g = cmd[2];
 		led_fade_color.b = cmd[3];
@@ -145,8 +146,8 @@ void _CYZ_CMD_execute(uint8_t* cmd) {
 		boot_parms temp;
 		temp.magic = CYZ_CMD_BOOTP_MAGIC;
 		temp.mode = cmd[1];
-		temp.repeats = cmd[2];
-		temp.scriptno = cmd[3];
+		temp.scriptno = cmd[2];
+		temp.repeats = cmd[3];
 		temp.fadespeed = cmd[4];
 		temp.timeadjust = cmd[5];
 		EEPROM_write_boot_parms(temp);

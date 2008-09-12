@@ -5,10 +5,10 @@ all:  clean out/master.hex out/slave.hex test
 test: test/test
 #test
 test/test: 
-	gcc -D TEST_MODE -Wall -Os -fpack-struct -fshort-enums -funsigned-char -funsigned-bitfields -MMD -MP -MF"out/color.d" -MT"out/color.d" -c -o "out/test_color.o" "../cyz/color.c"
-	gcc -D TEST_MODE -Wall -Os -fpack-struct -fshort-enums -funsigned-char -funsigned-bitfields -MMD -MP -MF"out/cyz_cmd.d" -MT"out/cyz_cmd.d" -c -o "out/test_cyz_cmd.o" "../cyz/cyz_cmd.c"
-	gcc -D TEST_MODE -Wall -Os -fpack-struct -fshort-enums -funsigned-char -funsigned-bitfields -o "out/test" "../test/test.c" out/test_cyz_cmd.o out/test_color.o
-	out/test
+	gcc -D TEST_MODE -Wall -Os -ftest-coverage -fprofile-arcs -fpack-struct -fshort-enums -funsigned-char -funsigned-bitfields -MMD -MP -MF"out_test/color.d" -MT"out_test/color.d" -c -o "out_test/color.o" "../cyz/color.c"
+	gcc -D TEST_MODE -Wall -Os -ftest-coverage -fprofile-arcs -fpack-struct -fshort-enums -funsigned-char -funsigned-bitfields -MMD -MP -MF"out_test/cyz_cmd.d" -MT"out_test/cyz_cmd.d" -c -o "out_test/cyz_cmd.o" "../cyz/cyz_cmd.c"
+	gcc -D TEST_MODE -Wall -Os -ftest-coverage -fprofile-arcs -fpack-struct -fshort-enums -funsigned-char -funsigned-bitfields -o "out_test/test" "../test/test.c" out_test/cyz_cmd.o out_test/color.o
+	out_test/test
 
 #i2cmaster
 out/i2cmaster.o:
