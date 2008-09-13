@@ -81,9 +81,10 @@ Cyz_cmd cyz_cmd;
 void CYZ_CMD_init();
 void _CYZ_CMD_execute(uint8_t* cmd);
 void CYZ_CMD_receive_one_byte(uint8_t in);
-uint8_t CYZ_CMD_play_next_script_line();
 void CYZ_CMD_load_boot_params();
 void CYZ_CMD_tick();
+uint8_t CYZ_CMD_play_next_script_line();
 uint8_t CYZ_CMD_prng(uint8_t range);
+uint8_t CYZ_CMD_get_cmd_len (uint8_t cmd);
 
 #endif

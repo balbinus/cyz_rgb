@@ -1,120 +1,75 @@
 RM := rm -rf
+ECHO = @
+AVR_LINK = $(ECHO) avr-gcc -Wl,-Map,out/slave.map -L/opt/local/avr/include -mmcu=attiny45
+AVR_SIZE = $(ECHO) -avr-size --format=Berkeley
+AVR_COMPILE_LOG = 'AVR Compiler: $@.c --> $@.o'
+AVR_COMPILE = $(ECHO)avr-gcc -Wall -Os -fpack-struct -fshort-enums -funsigned-char -funsigned-bitfields -mmcu=attiny45 -DF_CPU=1000000UL -MMD -MP \
+-MF"out/$@.d" -MT"out/$@.d" -c -o"out/$@.o" 
+AVR_FLASH = $(ECHO)-avr-objcopy -R .eeprom -O ihex
+TEST_COMPILER = $(ECHO)gcc -D TEST_MODE -Wall -Os -ftest-coverage -fprofile-arcs -fpack-struct -fshort-enums -funsigned-char -funsigned-bitfields
 
 # All Target
-all:  clean out/master.hex out/slave.hex test
-test: test/test
-#test
-test/test: 
-	gcc -D TEST_MODE -Wall -Os -ftest-coverage -fprofile-arcs -fpack-struct -fshort-enums -funsigned-char -funsigned-bitfields -MMD -MP -MF"out_test/color.d" -MT"out_test/color.d" -c -o "out_test/color.o" "../cyz/color.c"
-	gcc -D TEST_MODE -Wall -Os -ftest-coverage -fprofile-arcs -fpack-struct -fshort-enums -funsigned-char -funsigned-bitfields -MMD -MP -MF"out_test/cyz_cmd.d" -MT"out_test/cyz_cmd.d" -c -o "out_test/cyz_cmd.o" "../cyz/cyz_cmd.c"
-	gcc -D TEST_MODE -Wall -Os -ftest-coverage -fprofile-arcs -fpack-struct -fshort-enums -funsigned-char -funsigned-bitfields -o "out_test/test" "../test/test.c" out_test/cyz_cmd.o out_test/color.o
-	out_test/test
+all:  clean out/master.hex out/slave.hex sizes test/test
 
-#i2cmaster
-out/i2cmaster.o:
-	avr-gcc -c -mmcu=at90s8515 -I. -x assembler-with-cpp -Wa,-adhlns=out/i2cmaster.lst,-gstabs  ../i2cmaster/i2cmaster.S -o out/i2cmaster.o
+cyz_cmd:
+	@echo $(AVR_COMPILE_LOG) 
+	$(AVR_COMPILE) ../cyz/cyz_cmd.c
 
-#cyz_cmd
-out/cyz_cmd.o: 
-	@echo 'Building file: $<'
-	@echo 'Invoking: AVR Compiler'
-	avr-gcc -Wall -Os -fpack-struct -fshort-enums -funsigned-char -funsigned-bitfields -mmcu=attiny45 -DF_CPU=1000000UL -MMD -MP -MF"out/cyz_cmd.d" -MT"out/cyz_cmd.d" -c -o"out/cyz_cmd.o" "../cyz/cyz_cmd.c"
-	@echo 'Finished building: $<'
-	@echo ' '
+cyz_rgb:
+	@echo $(AVR_COMPILE_LOG) 
+	$(AVR_COMPILE) ../cyz/cyz_rgb.c
+
+color:
+	@echo $(AVR_COMPILE_LOG) 
+	$(AVR_COMPILE) ../cyz/color.c
 	
-#cyz_rgb
-out/cyz_rgb.o: 
-	@echo 'Building file: $<'
-	@echo 'Invoking: AVR Compiler'
-	avr-gcc -Wall -Os -fpack-struct -fshort-enums -funsigned-char -funsigned-bitfields -mmcu=attiny45 -DF_CPU=1000000UL -MMD -MP -MF"out/cyz_rgb.d" -MT"out/cyz_rgb.d" -c -o"out/cyz_rgb.o" "../cyz/cyz_rgb.c"
-	@echo 'Finished building: $<'
-	@echo ' '
-out/test_i2c.hex: out/test_i2c.elf
-	-avr-objcopy -R .eeprom -O ihex out/test_i2c.elf  "out/test_i2c.hex"
-out/test_i2c.elf: out/test_i2c.o out/usiTwiSlave.o
-	avr-gcc -Wl,-Map,out/test_i2c.map -L/opt/local/avr/include -mmcu=attiny45 -o"out/test_i2c.elf"  out/test_i2c.o out/usiTwiSlave.o
-out/test_i2c.o: out/test_i2c.elf
-	avr-gcc -Wall -Os -fpack-struct -fshort-enums -funsigned-char -funsigned-bitfields -mmcu=attiny45 -DF_CPU=1000000UL -MMD -MP -MF"out/test_i2c.d" -MT"out/test_i2c.d" -c -o"out/test_i2c.o" "../test/test_i2c.c"
+usiTwiMaster:
+	@echo $(AVR_COMPILE_LOG) 
+	$(AVR_COMPILE) ../usiTwi/usiTwiMaster.c
 
-out/color.o:
-	avr-gcc -Wall -Os -fpack-struct -fshort-enums -funsigned-char -funsigned-bitfields -mmcu=attiny45 -DF_CPU=1000000UL -MMD -MP -MF"out/color.d" -MT"out/color.d" -c -o"out/color.o" "../cyz/color.c"
-# Master-mode Firmware
-out/master.hex: out/master.elf out/master.eep sizedummy-master
-	@echo 'Create Flash image (ihex format)'
-	-avr-objcopy -R .eeprom -O ihex out/master.elf  "out/master.hex"
-	@echo 'Finished building: $@'
-	@echo ' '
+usiTwiSlave:
+	@echo $(AVR_COMPILE_LOG) 
+	$(AVR_COMPILE) ../usiTwi/usiTwiSlave.c
+
+master:
+	@echo $(AVR_COMPILE_LOG) 
+	$(AVR_COMPILE) ../master.c
+
+out/master.elf: master usiTwiMaster cyz_rgb cyz_cmd color
+	@echo 'AVR Linker: master.elf'
+	$(AVR_LINK) -o"out/master.elf"  out/master.o  out/usiTwiMaster.o out/cyz_cmd.o out/cyz_rgb.o out/color.o
 	
-out/master.eep: out/master.elf
-	-avr-objcopy -j .eeprom= -O ihex out/master.elf "out/master.eep"
+out/master.hex: out/master.elf
+	@echo 'AVR Flash: master.elf --> master.hex'
+	$(AVR_FLASH) out/master.elf  "out/master.hex"
 
-sizedummy-master: out/master.elf
-	@echo 'Invoking: Print Size'
-	-avr-size --format=Berkeley  out/master.elf
-	@echo 'Finished building: $@'
-	@echo ' '
+slave:
+	@echo $(AVR_COMPILE_LOG) 
+	$(AVR_COMPILE) ../slave.c
 
-out/master.elf: out/master.o out/usiTwiMaster.o out/cyz_rgb.o out/cyz_cmd.o out/color.o
-	@echo 'Building target: $@'
-	@echo 'Invoking: AVR C Linker'
-	avr-gcc -Wl,-Map,out/master.map -L/opt/local/avr/include -mmcu=attiny45 -o"out/master.elf"  out/master.o  out/usiTwiMaster.o out/cyz_cmd.o out/cyz_rgb.o out/color.o
-	@echo 'Finished building target: $@'
-	@echo ' '
+out/slave.hex: out/slave.elf
+	@echo 'AVR Flash: slave.elf --> slave.hex'
+	$(AVR_FLASH) out/slave.elf  "out/slave.hex"
 
-out/master.o:
-	@echo 'Building file: $<'
-	@echo 'Invoking: AVR Compiler'
-	avr-gcc -Wall -Os -fpack-struct -fshort-enums -funsigned-char -funsigned-bitfields -mmcu=attiny45 -DF_CPU=1000000UL -MMD -MP -MF"out/master.d" -MT"out/master.d" -c -o"out/master.o" "../master.c"
-	@echo 'Finished building: $<'
-	@echo ' '
+out/slave.elf: slave usiTwiSlave cyz_cmd cyz_rgb color
+	@echo 'AVR Linker: slave.elf'
+	$(AVR_LINK) -o"out/slave.elf"  out/slave.o  out/usiTwiSlave.o out/cyz_cmd.o out/cyz_rgb.o out/color.o 
 	
-out/usiTwiMaster.o:
-	@echo 'Building file: $<'
-	@echo 'Invoking: AVR Compiler'
-	avr-gcc -Wall -Os -fpack-struct -fshort-enums -funsigned-char -funsigned-bitfields -mmcu=attiny45 -DF_CPU=1000000UL -MMD -MP -MF"out/usiTwiMaster.d" -MT"out/usiTwiMaster.d" -c -o"out/usiTwiMaster.o" "../usiTwi/usiTwiMaster.c"
-	@echo 'Finished building: $<'
-	@echo ' '
-
-# Slave-mode firmware
-out/slave.hex: out/slave.elf sizedummy-slave
-	@echo 'Create Flash image (ihex format)'
-	-avr-objcopy -R .eeprom -O ihex out/slave.elf  "out/slave.hex"
-	@echo 'Finished building: $@'
-	@echo ' '
-
-sizedummy-slave: out/slave.elf
-	@echo 'Invoking: Print Size'
-	-avr-size --format=Berkeley  out/slave.elf
-	@echo 'Finished building: $@'
-	@echo ' '
-
-out/slave.elf: out/slave.o out/usiTwiSlave.o out/cyz_cmd.o out/cyz_rgb.o out/color.o
-	@echo 'Building target: $@'
-	@echo 'Invoking: AVR C Linker'
-	avr-gcc -Wl,-Map,out/slave.map -L/opt/local/avr/include -mmcu=attiny45 -o"out/slave.elf"  out/slave.o  out/usiTwiSlave.o out/cyz_cmd.o out/cyz_rgb.o out/color.o 
-	@echo 'Finished building target: $@'
-	@echo ' '
-
-out/slave.o:
-	@echo 'Building file: $<'
-	@echo 'Invoking: AVR Compiler'
-	avr-gcc -Wall -Os -fpack-struct -fshort-enums -funsigned-char -funsigned-bitfields -mmcu=attiny45 -DF_CPU=1000000UL -MMD -MP -MF"out/slave.d" -MT"out/slave.d" -c -o"out/slave.o" "../slave.c"
-	@echo 'Finished building: $<'
-	@echo ' '
-	
-out/usiTwiSlave.o:
-	@echo 'Building file: $<'
-	@echo 'Invoking: AVR Compiler'
-	avr-gcc -Wall -Os -fpack-struct -fshort-enums -funsigned-char -funsigned-bitfields -mmcu=attiny45 -DF_CPU=1000000UL -MMD -MP -MF"out/usiTwiSlave.d" -MT"out/usiTwislave.d" -c -o"out/usiTwiSlave.o" "../usiTwi/usiTwiSlave.c"
-	@echo 'Finished building: $<'
-	@echo ' '
+sizes: out/slave.elf out/master.elf
+	$(AVR_SIZE) out/slave.elf out/master.elf
 
 # Other Targets
+
 clean:
 	-$(RM) out/*
 	-@echo ' '
 
-#secondary-outputs: out/master.hex out/sizedummy
-
+test/test: 
+	$(TEST_COMPILER) -MMD -MP -MF"out_test/color.d" -MT"out_test/color.d" -c -o "out_test/color.o" "../cyz/color.c"
+	$(TEST_COMPILER) -MMD -MP -MF"out_test/cyz_cmd.d" -MT"out_test/cyz_cmd.d" -c -o "out_test/cyz_cmd.o" "../cyz/cyz_cmd.c"
+	$(TEST_COMPILER) -o "out_test/test" "../test/test.c" out_test/cyz_cmd.o out_test/color.o
+	@out_test/test
+	@gcov  -a -b -c -n --object-directory=out_test/ ../cyz/cyz_cmd.c  
+	
 .PHONY: all clean dependents
 .SECONDARY:

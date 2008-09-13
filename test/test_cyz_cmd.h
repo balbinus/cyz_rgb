@@ -28,6 +28,72 @@ static char* test_execute_fade_to_rgb() {
 	return 0;
 }
 
+static char* test_execute_fade_to_rnd_rgb() {
+	CYZ_CMD_init();
+
+	led_curr_color.r = 10;
+	led_curr_color.g = 11;
+	led_curr_color.b = 12;
+	int i; for (i=0; i<1000; i++) {
+		led_fade = 0;
+		led_fade_color.r = 0;
+		led_fade_color.g = 0;
+		led_fade_color.b = 0;
+		uint8_t cmd[] = {CMD_FADE_TO_RND_RGB,10,11,12};
+		_CYZ_CMD_execute(cmd);
+		mu_assert_eq(1, led_fade);
+		mu_assert_eq(10,led_curr_color.r);
+		mu_assert_eq(11,led_curr_color.g);
+		mu_assert_eq(12,led_curr_color.b);
+		mu_assert("fade.r >= 10", led_fade_color.r >= 10);
+		mu_assert("fade.g >= 11", led_fade_color.g >= 11);
+		mu_assert("fade.b >= 12", led_fade_color.b >= 12);
+	}
+	return 0;
+}
+
+static char* test_execute_fade_to_hsb() {
+	CYZ_CMD_init();
+	led_fade = 44;
+	led_fade_color.r = led_fade_color.g = led_fade_color.b = 111;
+	uint8_t cmd[] = { CMD_FADE_TO_HSB, 10, 20, 30 };
+	_CYZ_CMD_execute(cmd);
+	mu_assert_eq(1, led_fade);
+	Color clr;
+	color_hsv_to_rgb(10, 20, 30, &clr.r, &clr.g, &clr.b);
+	mu_assert_eq(clr.r, led_fade_color.r);
+	mu_assert_eq(clr.g, led_fade_color.g);
+	mu_assert_eq(clr.b, led_fade_color.b);
+	return 0;
+}
+
+static char* test_execute_fade_to_rnd_hsb() {
+	CYZ_CMD_init();
+	led_curr_color.r = 10;
+	led_curr_color.g = 11;
+	led_curr_color.b = 12;
+	uint8_t h, s, v;
+	color_rgb_to_hsv(led_curr_color, &h, &s, &v);
+	Color clr;
+	color_hsv_to_rgb(h, s, v, &clr.r, &clr.g, &clr.b);
+	int i; for (i=0; i<1000; i++) {
+		led_fade = 0;
+		led_fade_color.r = 0;
+		led_fade_color.g = 0;
+		led_fade_color.b = 0;
+		uint8_t cmd[] = {CMD_FADE_TO_RND_HSB,10,11,12};
+		_CYZ_CMD_execute(cmd);
+		mu_assert_eq(1, led_fade);
+		mu_assert_eq(10,led_curr_color.r);
+		mu_assert_eq(11,led_curr_color.g);
+		mu_assert_eq(12,led_curr_color.b);
+		mu_assert_ge(clr.r, led_fade_color.r);
+		mu_assert_ge(clr.g, led_fade_color.g);
+		mu_assert_ge(clr.b, led_fade_color.b);
+	}
+	return 0;
+}
+
 static char* test_execute_get_addr() {
 	CYZ_CMD_init();
 	cyz_cmd.addr = 99;
@@ -156,19 +222,6 @@ static char* test_prng() {
 		mu_assert("prng < 100", CYZ_CMD_prng(100) < 100);
 		mu_assert("prng < 255", CYZ_CMD_prng(255) < 255);
 	}
-	return 0;
-}
-
-static char* test_execute_fade_to_rnd_rgb() {
-	CYZ_CMD_init();
-	led_curr_color.r = 10;
-	led_curr_color.g = 11;
-	led_curr_color.b = 12;
-	uint8_t cmd[] = {'C',10,11,12};
-	_CYZ_CMD_execute(cmd);
-	mu_assert("fade.r >= 10", led_fade_color.r >= 10);
-	mu_assert("fade.g >= 11", led_fade_color.g >= 11);
-	mu_assert("fade.b >= 12", led_fade_color.b >= 12);
 	return 0;
 }
 
@@ -548,12 +601,35 @@ static char * test_execute_get_dbg() {
 	return 0;
 }
 
+static char * test_get_cmd_len() {
+	mu_assert_eq(4,CYZ_CMD_get_cmd_len(CMD_GO_TO_RGB));
+	mu_assert_eq(4,CYZ_CMD_get_cmd_len(CMD_FADE_TO_RGB));
+	mu_assert_eq(4,CYZ_CMD_get_cmd_len(CMD_FADE_TO_RND_RGB));
+	mu_assert_eq(4,CYZ_CMD_get_cmd_len(CMD_FADE_TO_HSB));
+	mu_assert_eq(4,CYZ_CMD_get_cmd_len(CMD_FADE_TO_RND_HSB));
+	mu_assert_eq(8,CYZ_CMD_get_cmd_len(CMD_WRITE_SCRIPT_LINE));
+	mu_assert_eq(4,CYZ_CMD_get_cmd_len(CMD_PLAY_LIGHT_SCRIPT));
+	mu_assert_eq(1,CYZ_CMD_get_cmd_len(CMD_STOP_SCRIPT));
+	mu_assert_eq(6,CYZ_CMD_get_cmd_len(CMD_SET_BOOT_PARMS));
+	mu_assert_eq(1,CYZ_CMD_get_cmd_len(CMD_SET_TIMEADJUST));
+	mu_assert_eq(1,CYZ_CMD_get_cmd_len(CMD_SET_FADESPEED));
+	mu_assert_eq(4,CYZ_CMD_get_cmd_len(CMD_SET_LEN_RPTS));
+	mu_assert_eq(5,CYZ_CMD_get_cmd_len(CMD_SET_ADDR));
+	mu_assert_eq(1,CYZ_CMD_get_cmd_len(CMD_GET_ADDR));
+	mu_assert_eq(1,CYZ_CMD_get_cmd_len(CMD_GET_RGB));
+	mu_assert_eq(3,CYZ_CMD_get_cmd_len(CMD_GET_SCRIPT_LINE));
+	mu_assert_eq(1,CYZ_CMD_get_cmd_len(CMD_GET_FIRMWARE_VERSION));
+	mu_assert_eq(1,CYZ_CMD_get_cmd_len(CMD_GET_DBG));
+	mu_assert_eq(0xFF,CYZ_CMD_get_cmd_len(0));
+	return 0;
+}
+
 static char * test_cyz_cmd() {
 	mu_run_test(test_execute_go_to_rgb);
 	mu_run_test(test_execute_fade_to_rgb);
 	mu_run_test(test_execute_fade_to_rnd_rgb);
-	// CMD_FADE_TO_HSB
-	// CMD_FADE_TO_RND_HSB
+	mu_run_test(test_execute_fade_to_hsb);
+	mu_run_test(test_execute_fade_to_rnd_hsb);
 	mu_run_test(test_execute_write_script_line);
 	mu_run_test(test_execute_play_light_script);
 	mu_run_test(test_execute_stop_script);
@@ -581,6 +657,7 @@ static char * test_cyz_cmd() {
 	mu_run_test(test_tick_play);
 	mu_run_test(test_tick_no_play);
 	mu_run_test(test_init);
+	mu_run_test(test_get_cmd_len);
 
 	return 0;
 }

@@ -1,7 +1,7 @@
 #include "cyz_cmd.h"
-
 #include <limits.h>
 #include "color.h"
+
 boot_parms EEMEM EEbbotp;
 uint8_t EEMEM EEaddr;
 script EEMEM EEscript;
@@ -39,7 +39,7 @@ void CYZ_CMD_init() {
 /* returns the length of the command, command+payload. */
 /* example "fadeToColor" is 'f',R,G,B: the returned length is 4 */
 /* 0xFF means error */
-uint8_t CYZ_CMD_get_cmd_len (char cmd) {
+uint8_t CYZ_CMD_get_cmd_len (uint8_t cmd) {
 	switch(cmd) {
 	case CMD_GO_TO_RGB:
 		return 4;
@@ -105,10 +105,12 @@ void _CYZ_CMD_execute(uint8_t* cmd) {
 		led_fade_color.b = led_curr_color.b + CYZ_CMD_prng(cmd[3]);
 		break;
 	case CMD_FADE_TO_HSB:
-		color_hsv_to_rgb(cmd[1], cmd[2], cmd[3], &led_curr_color.r, &led_curr_color.g, &led_curr_color.b);
+		led_fade = 1;
+		color_hsv_to_rgb(cmd[1], cmd[2], cmd[3], &led_fade_color.r, &led_fade_color.g, &led_fade_color.b);
 		break;
 	case CMD_FADE_TO_RND_HSB:
 	{
+		led_fade = 1;
 		uint8_t h,s,v;
 		color_rgb_to_hsv(led_curr_color, &h, &s, &v);
 		h += CYZ_CMD_prng(cmd[1]);

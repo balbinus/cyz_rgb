@@ -14,6 +14,14 @@
 		return minunit_msg; }; \
 	} while(0); }
 
+#define mu_assert_ge(min, actual) {\
+	uint8_t a = (min); \
+	uint8_t b = (actual); \
+	do { if ((b) < (a)) { \
+		sprintf(minunit_msg, "ASSERT_GE: %s:%d expected min %d, got %u", __FILE__, __LINE__, a, b);\
+		return minunit_msg; }; \
+	} while(0); }
+
 #define mu_run_test(test) do { char *message = test(); tests_run++; \
 	if (message) return message; } while (0)
 

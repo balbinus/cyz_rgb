@@ -1,0 +1,10 @@
+out/test_i2c.hex: out/test_i2c.elf
+	-avr-objcopy -R .eeprom -O ihex out/test_i2c.elf  "out/test_i2c.hex"
+out/test_i2c.elf: out/test_i2c.o out/usiTwiSlave.o
+	avr-gcc -Wl,-Map,out/test_i2c.map -L/opt/local/avr/include -mmcu=attiny45 -o"out/test_i2c.elf"  out/test_i2c.o out/usiTwiSlave.o
+out/test_i2c.o: out/test_i2c.elf
+	avr-gcc -Wall -Os -fpack-struct -fshort-enums -funsigned-char -funsigned-bitfields -mmcu=attiny45 -DF_CPU=1000000UL -MMD -MP -MF"out/test_i2c.d" -MT"out/test_i2c.d" -c -o"out/test_i2c.o" "../test/test_i2c.c"
+
+#out/master.eep: out/master.elf
+#	-avr-objcopy -j .eeprom= -O ihex out/master.elf "out/master.eep"
+	
