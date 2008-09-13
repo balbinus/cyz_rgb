@@ -43,7 +43,7 @@ extern uint8_t led_fadespeed;
 
 typedef struct _boot_parms {
 	uint8_t magic; // check byte to see if any data has been stored
-	uint8_t mode; // 0 do nothing, 1 play light script
+	uint8_t play_script; // 0 do nothing, 1 play light script
 	uint8_t repeats; // number of repetitions
 	uint8_t fadespeed;
 	int8_t timeadjust;
@@ -80,12 +80,10 @@ Cyz_cmd cyz_cmd;
 
 void CYZ_CMD_init();
 void _CYZ_CMD_execute(uint8_t* cmd);
-void _CYZ_CMD_receive_one_byte(uint8_t in);
-uint8_t _CYZ_CMD_play_next_script_line();
+void CYZ_CMD_receive_one_byte(uint8_t in);
+uint8_t CYZ_CMD_play_next_script_line();
 void CYZ_CMD_load_boot_params();
-void _CYZ_CMD_tick();
-uint8_t _CYZ_CMD_prng(uint8_t range);
-uint8_t _CYZ_CMD_get_one_byte_from_send_buffer();
-uint8_t _CYZ_CMD_is_data_in_send_buffer();
+void CYZ_CMD_tick();
+uint8_t CYZ_CMD_prng(uint8_t range);
 
 #endif

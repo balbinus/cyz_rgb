@@ -10,9 +10,9 @@ const script fl_script_rgb PROGMEM = {
 		3, // number of lines
 		0, // number of repeats
 		{
-				{ 50, {'n', 0xff,0x00,0x00}},
-				{ 50, {'n', 0x00,0xff,0x00}},
-				{ 50, {'n', 0x00,0x00,0xff}},
+			{ 50, {'n', 0xff,0x00,0x00}},
+			{ 50, {'n', 0x00,0xff,0x00}},
+			{ 50, {'n', 0x00,0x00,0xff}},
 		}
 };
 
@@ -94,16 +94,15 @@ void _CYZ_CMD_execute(uint8_t* cmd) {
 		break;
 	case CMD_FADE_TO_RGB:
 		led_fade = 1;
-		//memcpy(&cmd[0], &led_fade_color, 3);
 		led_fade_color.r = cmd[1];
 		led_fade_color.g = cmd[2];
 		led_fade_color.b = cmd[3];
 		break;
 	case CMD_FADE_TO_RND_RGB:
 		led_fade = 1;
-		led_fade_color.r = led_curr_color.r + _CYZ_CMD_prng(cmd[1]);
-		led_fade_color.g = led_curr_color.g + _CYZ_CMD_prng(cmd[2]);
-		led_fade_color.b = led_curr_color.b + _CYZ_CMD_prng(cmd[3]);
+		led_fade_color.r = led_curr_color.r + CYZ_CMD_prng(cmd[1]);
+		led_fade_color.g = led_curr_color.g + CYZ_CMD_prng(cmd[2]);
+		led_fade_color.b = led_curr_color.b + CYZ_CMD_prng(cmd[3]);
 		break;
 	case CMD_FADE_TO_HSB:
 		color_hsv_to_rgb(cmd[1], cmd[2], cmd[3], &led_curr_color.r, &led_curr_color.g, &led_curr_color.b);
@@ -112,9 +111,9 @@ void _CYZ_CMD_execute(uint8_t* cmd) {
 	{
 		uint8_t h,s,v;
 		color_rgb_to_hsv(led_curr_color, &h, &s, &v);
-		h += _CYZ_CMD_prng(cmd[1]);
-		s += _CYZ_CMD_prng(cmd[2]);
-		v += _CYZ_CMD_prng(cmd[3]);
+		h += CYZ_CMD_prng(cmd[1]);
+		s += CYZ_CMD_prng(cmd[2]);
+		v += CYZ_CMD_prng(cmd[3]);
 		color_hsv_to_rgb(h, s, v, &led_fade_color.r, &led_fade_color.g, &led_fade_color.b);
 	}
 	break;
@@ -147,10 +146,10 @@ void _CYZ_CMD_execute(uint8_t* cmd) {
 		boot_parms temp;
 		temp.magic = CYZ_CMD_BOOTP_MAGIC;
 		if (cmd[1] > 0) {
-			temp.mode = cmd[2]+1;
+			temp.play_script = cmd[2]+1;
 		}
 		else {
-			temp.mode = 0;
+			temp.play_script = 0;
 		}
 		temp.repeats = cmd[3];
 		temp.fadespeed = cmd[4];
@@ -187,6 +186,7 @@ void _CYZ_CMD_execute(uint8_t* cmd) {
 
 	case CMD_GET_SCRIPT_LINE:
 	{
+		//TODO, make other scripts readable
 		//cmd[1] is ignore: only script 0 can be read
 		script_line tmp;
 		EEPROM_read_script_line(tmp, cmd[2]);
@@ -205,33 +205,29 @@ void _CYZ_CMD_execute(uint8_t* cmd) {
 
 void CYZ_CMD_load_boot_params() {
 	EEPROM_read_addr(cyz_cmd.addr);
-
 	boot_parms temp;
 	EEPROM_read_boot_parms(temp);
 	if (temp.magic == CYZ_CMD_BOOTP_MAGIC) {
-		if (temp.mode > 0) {
-			cyz_cmd.play_script = temp.mode;
+		if (temp.play_script > 0) {
+			cyz_cmd.play_script = temp.play_script;
 			cyz_cmd.script_repeats = temp.repeats;
 			if (temp.fadespeed != 0) {
 				led_fadespeed = temp.fadespeed;
 			}
 			cyz_cmd.timeadjust = temp.timeadjust;
-			//cyz_cmd.sciptno = temp.scriptno;
 		}
 	}
 }
 
-
-/* to be invoked inside a timer, every time its called plays next script line, */
-/* if script is playing and there are more lines to play */
-uint8_t _CYZ_CMD_play_next_script_line() {
+/* to be invoked inside a timer, if script is playing */
+uint8_t CYZ_CMD_play_next_script_line() {
 	//TODO: load lines in memory only once
 	script_line tmp;
 	if (cyz_cmd.play_script-1 == 0) {
 		EEPROM_read_script_line(tmp, cyz_cmd.script_pos);
 	}
 	else {
-		PROGMEM_read_script_line(tmp, 0, cyz_cmd.script_pos)
+		PROGMEM_read_script_line(tmp, cyz_cmd.play_script-2, cyz_cmd.script_pos)
 	}
 
 	cyz_cmd.script_pos++;
@@ -248,7 +244,7 @@ uint8_t _CYZ_CMD_play_next_script_line() {
 	return tmp.dur + cyz_cmd.timeadjust;
 }
 
-void _CYZ_CMD_receive_one_byte(uint8_t in) {
+void CYZ_CMD_receive_one_byte(uint8_t in) {
 	cyz_cmd.rcv_cmd_buf[cyz_cmd.rcv_cmd_buf_cnt] = in;
 	/* first byte contains the command, use it to decide length of payload */
 	if (cyz_cmd.rcv_cmd_buf_cnt == 0) {
@@ -265,16 +261,16 @@ void _CYZ_CMD_receive_one_byte(uint8_t in) {
 }
 
 #define M 0x7FFFFFFF  // 2^31-1, the modulus used by the psuedo-random number generator prng().
-uint8_t _CYZ_CMD_prng(uint8_t range) {
+uint8_t CYZ_CMD_prng(uint8_t range) {
 	static uint8_t count = 1;
 	if (range == 0) return 0;
 	uint8_t x = ++count + cyz_cmd.tick_count;
 	return ((uint8_t)((++x >> 4) + ((x << 3) & M) - (x >> 7) - ((x << 6) & M)))%range;
 }
 
-void _CYZ_CMD_tick() {
+void CYZ_CMD_tick() {
 	if (cyz_cmd.play_script && cyz_cmd.tick_count++ == 0) {
-		uint8_t duration = _CYZ_CMD_play_next_script_line();
+		uint8_t duration = CYZ_CMD_play_next_script_line();
 		cyz_cmd.tick_count = -duration;
 	}
 }

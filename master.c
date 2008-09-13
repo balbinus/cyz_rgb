@@ -81,7 +81,7 @@ void cyz_master_send_color() {
 /*	Triggered when timer overflows. */
 ISR(SIG_OVERFLOW0)
 {
-	_CYZ_CMD_tick();
+	CYZ_CMD_tick();
 	cyz_master_send_color();
 	_CYZ_RGB_pulse();
 }

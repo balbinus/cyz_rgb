@@ -6,10 +6,10 @@
 	cyz_cmd.script_length = pgm_read_byte(PGMscr);\
 	memcpy_P(&dst, &PGMscr->lines[lineno], 5);
 #else
-uint8_t mock_buf[6];
-#define mock_empty_buffer memset(&mock_buf, 0, 6);
+uint8_t progmem_mock_buf[7];
 #define PROGMEM
 #define PROGMEM_read_script_line(dest, scriptno, lineno) \
-memcpy(&dest, &mock_buf, 5); \
-mock_buf[5] = lineno;
+memcpy(&dest, &progmem_mock_buf, 5); \
+progmem_mock_buf[5] = lineno; \
+progmem_mock_buf[6] = scriptno;
 #endif

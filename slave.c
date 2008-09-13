@@ -1,5 +1,4 @@
 #include <avr/interrupt.h>
-#include <limits.h>
 #include "usiTwi/usiTwiSlave.h"
 #include "cyz/cyz_rgb.h"
 #include "ring_buffer.h"
@@ -27,7 +26,7 @@ int main(void)
 	for(;;)
 	{
 		while(usiTwiDataInReceiveBuffer()) {
-			_CYZ_CMD_receive_one_byte(usiTwiReceiveByte());
+			CYZ_CMD_receive_one_byte(usiTwiReceiveByte());
 		}
 
 		while( ring_buffer_has_data(cyz_cmd.send_buffer)) {
@@ -43,6 +42,6 @@ int main(void)
 /*  TODO: figure out _actual_ math */
 ISR(SIG_OVERFLOW0)
 {
-	_CYZ_CMD_tick();
+	CYZ_CMD_tick();
 	_CYZ_RGB_pulse();
 }
