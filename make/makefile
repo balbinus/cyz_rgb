@@ -11,6 +11,7 @@ TEST_COMPILER = $(ECHO)gcc -D TEST_MODE -Wall -Os -ftest-coverage -fprofile-arcs
 # All Target
 all:  clean out/master.hex out/slave.hex sizes test/test
 
+#objects
 cyz_cmd:
 	@echo $(AVR_COMPILE_LOG) 
 	$(AVR_COMPILE) ../cyz/cyz_cmd.c
@@ -31,6 +32,7 @@ usiTwiSlave:
 	@echo $(AVR_COMPILE_LOG) 
 	$(AVR_COMPILE) ../usiTwi/usiTwiSlave.c
 
+#master firmware
 master:
 	@echo $(AVR_COMPILE_LOG) 
 	$(AVR_COMPILE) ../master.c
@@ -43,6 +45,7 @@ out/master.hex: out/master.elf
 	@echo 'AVR Flash: master.elf --> master.hex'
 	$(AVR_FLASH) out/master.elf  "out/master.hex"
 
+#slave firmware
 slave:
 	@echo $(AVR_COMPILE_LOG) 
 	$(AVR_COMPILE) ../slave.c
@@ -54,22 +57,23 @@ out/slave.hex: out/slave.elf
 out/slave.elf: slave usiTwiSlave cyz_cmd cyz_rgb color
 	@echo 'AVR Linker: slave.elf'
 	$(AVR_LINK) -o"out/slave.elf"  out/slave.o  out/usiTwiSlave.o out/cyz_cmd.o out/cyz_rgb.o out/color.o 
-	
+
+#print sizes of binary	
 sizes: out/slave.elf out/master.elf
 	$(AVR_SIZE) out/slave.elf out/master.elf
-
-# Other Targets
 
 clean:
 	-$(RM) out/*
 	-@echo ' '
 
+#tests and coverage
 test/test: 
 	$(TEST_COMPILER) -MMD -MP -MF"out_test/color.d" -MT"out_test/color.d" -c -o "out_test/color.o" "../cyz/color.c"
 	$(TEST_COMPILER) -MMD -MP -MF"out_test/cyz_cmd.d" -MT"out_test/cyz_cmd.d" -c -o "out_test/cyz_cmd.o" "../cyz/cyz_cmd.c"
 	$(TEST_COMPILER) -o "out_test/test" "../test/test.c" out_test/cyz_cmd.o out_test/color.o
+	@echo ''
 	@out_test/test
-	@gcov  -a -b -c -n --object-directory=out_test/ ../cyz/cyz_cmd.c  
+	@echo `gcov  -a -b -c -n --object-directory=out_test/ ../cyz/cyz_cmd.c`
 	
 .PHONY: all clean dependents
 .SECONDARY:

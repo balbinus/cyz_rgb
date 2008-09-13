@@ -12,8 +12,7 @@ int main(int argc, char **argv) {
 	mu_run_suite(test_ring_buffer);
 	mu_run_suite(test_cyz_cmd);
 
-	printf("ALL TESTS PASSED\n");
-	printf("Tests run: %d\n", tests_run);
+	printf("ALL TESTS PASSED. Tests run: %d\n", tests_run);
 
 	return 0;
 }

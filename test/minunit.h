@@ -2,7 +2,7 @@
 
 #define mu_assert(message, test) \
 	do { if (!(test)) { \
-		sprintf(minunit_msg, "ASSERT: %s:%d - %s", __FILE__, __LINE__, message); \
+		sprintf(minunit_msg, "%s:%d ASSERT - %s", __FILE__, __LINE__, message); \
 		return minunit_msg; }\
 	} while (0)
 
@@ -10,7 +10,7 @@
 	uint8_t a = (expected); \
 	uint8_t b = (actual); \
 	do { if ((a) != (b)) { \
-		sprintf(minunit_msg, "ASSERT_EQ: %s:%d expected %d, got %u", __FILE__, __LINE__, a, b);\
+		sprintf(minunit_msg, "%s:%d: ASSERT_EQ - expected %d, got %u", __FILE__, __LINE__, a, b);\
 		return minunit_msg; }; \
 	} while(0); }
 
@@ -18,7 +18,7 @@
 	uint8_t a = (min); \
 	uint8_t b = (actual); \
 	do { if ((b) < (a)) { \
-		sprintf(minunit_msg, "ASSERT_GE: %s:%d expected min %d, got %u", __FILE__, __LINE__, a, b);\
+		sprintf(minunit_msg, "%s:%d: ASSERT_GE - expected min %d, got %u", __FILE__, __LINE__, a, b);\
 		return minunit_msg; }; \
 	} while(0); }
 
