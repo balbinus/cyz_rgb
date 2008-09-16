@@ -41,28 +41,8 @@
 
 /* select port and data direction register on which pin leds are */
 #include <stdlib.h>
-#include <avr/io.h>
 #include "color.h"
-#define PWM_PORT PORTB
-#define PWM_DDR DDRB
-
-/* map leds to actual pins */
-#define PINRED PB3
-#define PINGRN PB4
-#define PINBLU PB1
-
-/******************************/
-/* turn off single leds */
-#define RED_LED_OFF PWM_PORT &= ~(1<<PINRED)
-#define GRN_LED_OFF PWM_PORT &= ~(1<<PINGRN)
-#define BLU_LED_OFF PWM_PORT &= ~(1<<PINBLU)
-
-/* turn on single leds */
-#define RED_LED_ON PWM_PORT |= 1<<PINRED
-#define GRN_LED_ON PWM_PORT |= 1<<PINGRN
-#define BLU_LED_ON PWM_PORT |= 1<<PINBLU
-
-
+#include "io.h"
 
 typedef struct CYZ_RGB {
 	uint8_t pulse_count;

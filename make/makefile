@@ -70,10 +70,11 @@ clean:
 test/test: 
 	$(TEST_COMPILER) -MMD -MP -MF"out_test/color.d" -MT"out_test/color.d" -c -o "out_test/color.o" "../cyz/color.c"
 	$(TEST_COMPILER) -MMD -MP -MF"out_test/cyz_cmd.d" -MT"out_test/cyz_cmd.d" -c -o "out_test/cyz_cmd.o" "../cyz/cyz_cmd.c"
-	$(TEST_COMPILER) -o "out_test/test" "../test/test.c" out_test/cyz_cmd.o out_test/color.o
+	$(TEST_COMPILER) -MMD -MP -MF"out_test/cyz_rgb.d" -MT"out_test/cyz_rgb.d" -c -o "out_test/cyz_rgb.o" "../cyz/cyz_rgb.c"
+	$(TEST_COMPILER) -o "out_test/test" "../test/test.c" out_test/cyz_cmd.o out_test/cyz_rgb.o out_test/color.o
 	@echo ''
 	@out_test/test
-	@echo `gcov  -a -b -c -n --object-directory=out_test/ ../cyz/cyz_cmd.c`
+	@gcov  -a -b -c -n --object-directory=out_test/ ../cyz/cyz_cmd.c ../cyz/cyz_rgb.c
 	
 .PHONY: all clean dependents
 .SECONDARY:

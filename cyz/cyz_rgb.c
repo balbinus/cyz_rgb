@@ -5,8 +5,20 @@ extern Color led_fade_color;
 extern uint8_t led_fade;
 extern uint8_t led_fadespeed;
 
+void _CYZ_RGB_fade_step_component(uint8_t* current, uint8_t* target) {
+	if (*current != led_fade_color.r) {
+		if (*current > led_fade_color.r) {
+			uint8_t diff = *current - led_fade_color.r;
+			*current -= MIN(diff, led_fadespeed);
+		}
+		else {
+			uint8_t diff = led_fade_color.r - *current;
+			*current += MIN(diff, led_fadespeed);
+		}
+	}
+}
 
-
+/*
 void __CYZ_RGB_fade_step() {
 	if (led_curr_color.r != led_fade_color.r) {
 		if (led_curr_color.r > led_fade_color.r) {
@@ -41,6 +53,7 @@ void __CYZ_RGB_fade_step() {
 
 	//TODO: set led_fade=0  when fade_color is reached
 }
+*/
 
 void _CYZ_RGB_pulse() {
 	if (++cyz_rgb.pulse_count == 0) {
@@ -48,7 +61,10 @@ void _CYZ_RGB_pulse() {
 		if (led_curr_color.g > 0) GRN_LED_ON;
 		if (led_curr_color.b > 0) BLU_LED_ON;
 		if(led_fade==1) {
-			__CYZ_RGB_fade_step();
+			_CYZ_RGB_fade_step_component(&led_curr_color.r, &led_fade_color.r);
+			_CYZ_RGB_fade_step_component(&led_curr_color.g, &led_fade_color.g);
+			_CYZ_RGB_fade_step_component(&led_curr_color.b, &led_fade_color.b);
+			//__CYZ_RGB_fade_step();
 		}
 	}
 	if (led_curr_color.r != 255 && cyz_rgb.pulse_count == led_curr_color.r) RED_LED_OFF;

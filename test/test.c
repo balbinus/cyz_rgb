@@ -1,5 +1,6 @@
 #include "test_ring_buffer.h"
 #include "test_cyz_cmd.h"
+#include "test_cyz_rgb.h"
 #include "minunit.h"
 
 Color led_curr_color;
@@ -11,6 +12,7 @@ int main(int argc, char **argv) {
 
 	mu_run_suite(test_ring_buffer);
 	mu_run_suite(test_cyz_cmd);
+	mu_run_suite(test_cyz_rgb);
 
 	printf("ALL TESTS PASSED. Tests run: %d\n", tests_run);
 

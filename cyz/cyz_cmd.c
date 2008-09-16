@@ -84,7 +84,7 @@ uint8_t CYZ_CMD_get_cmd_len (uint8_t cmd) {
 void _CYZ_CMD_execute(uint8_t* cmd) {
 	switch (cmd[0]) {
 	case CMD_GET_DBG:
-		ring_buffer_push_array(cyz_cmd.send_buffer, cyz_cmd.dbg, 8);
+		ring_buffer_push_array(&cyz_cmd.send_buffer, cyz_cmd.dbg, 8);
 		break;
 	case CMD_GO_TO_RGB:
 		led_fade = 0;
@@ -178,12 +178,12 @@ void _CYZ_CMD_execute(uint8_t* cmd) {
 		}
 		break;
 	case CMD_GET_ADDR:
-		ring_buffer_push(cyz_cmd.send_buffer, cyz_cmd.addr);
+		ring_buffer_push(&cyz_cmd.send_buffer, cyz_cmd.addr);
 		break;
 	case CMD_GET_RGB:
-		ring_buffer_push(cyz_cmd.send_buffer, led_curr_color.r);
-		ring_buffer_push(cyz_cmd.send_buffer, led_curr_color.g);
-		ring_buffer_push(cyz_cmd.send_buffer, led_curr_color.b);
+		ring_buffer_push(&cyz_cmd.send_buffer, led_curr_color.r);
+		ring_buffer_push(&cyz_cmd.send_buffer, led_curr_color.g);
+		ring_buffer_push(&cyz_cmd.send_buffer, led_curr_color.b);
 		break;
 
 	case CMD_GET_SCRIPT_LINE:
@@ -192,14 +192,14 @@ void _CYZ_CMD_execute(uint8_t* cmd) {
 		//cmd[1] is ignore: only script 0 can be read
 		script_line tmp;
 		EEPROM_read_script_line(tmp, cmd[2]);
-		ring_buffer_push(cyz_cmd.send_buffer, tmp.dur);
-		ring_buffer_push_array(cyz_cmd.send_buffer, tmp.cmd, 4);
+		ring_buffer_push(&cyz_cmd.send_buffer, tmp.dur);
+		ring_buffer_push_array(&cyz_cmd.send_buffer, tmp.cmd, 4);
 	}
 	break;
 	case CMD_GET_FIRMWARE_VERSION:
 	{
-		ring_buffer_push(cyz_cmd.send_buffer, VERSION_MAJOR);
-		ring_buffer_push(cyz_cmd.send_buffer, VERSION_MINOR);
+		ring_buffer_push(&cyz_cmd.send_buffer, VERSION_MAJOR);
+		ring_buffer_push(&cyz_cmd.send_buffer, VERSION_MINOR);
 	}
 	break;
 	}

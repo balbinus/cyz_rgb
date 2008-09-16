@@ -99,7 +99,7 @@ static char* test_execute_get_addr() {
 	cyz_cmd.addr = 99;
 	uint8_t cmd[] = {'a'};
 	_CYZ_CMD_execute(cmd);
-	mu_assert_eq(99, ring_buffer_pop(cyz_cmd.send_buffer));
+	mu_assert_eq(99, ring_buffer_pop(&cyz_cmd.send_buffer));
 	return 0;
 }
 
@@ -146,9 +146,9 @@ static char* test_execute_get_rgb() {
 	led_curr_color.b = 9;
 	uint8_t cmd[] = {'g'};
 	_CYZ_CMD_execute(cmd);
-	mu_assert_eq(3, ring_buffer_pop(cyz_cmd.send_buffer));
-	mu_assert_eq(6, ring_buffer_pop(cyz_cmd.send_buffer));
-	mu_assert_eq(9, ring_buffer_pop(cyz_cmd.send_buffer));
+	mu_assert_eq(3, ring_buffer_pop(&cyz_cmd.send_buffer));
+	mu_assert_eq(6, ring_buffer_pop(&cyz_cmd.send_buffer));
+	mu_assert_eq(9, ring_buffer_pop(&cyz_cmd.send_buffer));
 
 	return 0;
 }
@@ -175,8 +175,8 @@ static char* test_execute_get_firmware_version() {
 	CYZ_CMD_init();
 	uint8_t cmd[] = {'Z'};
 	_CYZ_CMD_execute(cmd);
-	mu_assert_eq(0, ring_buffer_pop(cyz_cmd.send_buffer));
-	mu_assert_eq(2, ring_buffer_pop(cyz_cmd.send_buffer));
+	mu_assert_eq(0, ring_buffer_pop(&cyz_cmd.send_buffer));
+	mu_assert_eq(2, ring_buffer_pop(&cyz_cmd.send_buffer));
 	return 0;
 }
 
@@ -274,11 +274,11 @@ static char * test_execute_get_script_line() {
 	mock_buf[3] = 'B';
 	mock_buf[4] = 'C';
 	_CYZ_CMD_execute(cmd);
-	mu_assert_eq('d', ring_buffer_pop(cyz_cmd.send_buffer));
-	mu_assert_eq('c', ring_buffer_pop(cyz_cmd.send_buffer));
-	mu_assert_eq('A', ring_buffer_pop(cyz_cmd.send_buffer));
-	mu_assert_eq('B', ring_buffer_pop(cyz_cmd.send_buffer));
-	mu_assert_eq('C', ring_buffer_pop(cyz_cmd.send_buffer));
+	mu_assert_eq('d', ring_buffer_pop(&cyz_cmd.send_buffer));
+	mu_assert_eq('c', ring_buffer_pop(&cyz_cmd.send_buffer));
+	mu_assert_eq('A', ring_buffer_pop(&cyz_cmd.send_buffer));
+	mu_assert_eq('B', ring_buffer_pop(&cyz_cmd.send_buffer));
+	mu_assert_eq('C', ring_buffer_pop(&cyz_cmd.send_buffer));
 
 	return 0;
 }
@@ -315,7 +315,7 @@ static char * test_load_boot_params_if_no_magic() {
 	return 0;
 }
 
-static char * test_init() {
+static char * test_cyz_cmd_init() {
 	cyz_cmd.addr = 11;
 	cyz_cmd.script_length = 22;
 	cyz_cmd.script_pos = 33;
@@ -596,8 +596,8 @@ static char * test_execute_get_dbg() {
 	cyz_cmd.dbg[1] = 'b';
 	uint8_t cmd[] = {CMD_GET_DBG};
 	_CYZ_CMD_execute(cmd);
-	mu_assert_eq('a', ring_buffer_pop(cyz_cmd.send_buffer));
-	mu_assert_eq('b', ring_buffer_pop(cyz_cmd.send_buffer));
+	mu_assert_eq('a', ring_buffer_pop(&cyz_cmd.send_buffer));
+	mu_assert_eq('b', ring_buffer_pop(&cyz_cmd.send_buffer));
 	return 0;
 }
 
@@ -656,7 +656,7 @@ static char * test_cyz_cmd() {
 	mu_run_test(test_tick);
 	mu_run_test(test_tick_play);
 	mu_run_test(test_tick_no_play);
-	mu_run_test(test_init);
+	mu_run_test(test_cyz_cmd_init);
 	mu_run_test(test_get_cmd_len);
 
 	return 0;

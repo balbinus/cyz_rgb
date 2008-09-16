@@ -29,8 +29,8 @@ int main(void)
 			CYZ_CMD_receive_one_byte(usiTwiReceiveByte());
 		}
 
-		while( ring_buffer_has_data(cyz_cmd.send_buffer)) {
-			usiTwiTransmitByte(ring_buffer_pop(cyz_cmd.send_buffer));
+		while( ring_buffer_has_data(&cyz_cmd.send_buffer)) {
+			usiTwiTransmitByte(ring_buffer_pop(&cyz_cmd.send_buffer));
 		}
 	}
 
