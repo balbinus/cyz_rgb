@@ -6,13 +6,13 @@ extern uint8_t led_fade;
 extern uint8_t led_fadespeed;
 
 void _CYZ_RGB_fade_step_component(uint8_t* current, uint8_t* target) {
-	if (*current != led_fade_color.r) {
-		if (*current > led_fade_color.r) {
-			uint8_t diff = *current - led_fade_color.r;
+	if (*current != *target) {
+		if (*current > *target) {
+			uint8_t diff = *current - *target;
 			*current -= MIN(diff, led_fadespeed);
 		}
 		else {
-			uint8_t diff = led_fade_color.r - *current;
+			uint8_t diff = *target - *current;
 			*current += MIN(diff, led_fadespeed);
 		}
 	}
