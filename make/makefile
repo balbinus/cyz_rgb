@@ -1,9 +1,22 @@
+###################################################################
+# Specify thetarget MCU for compilation on the commandline.
+###################################################################
+#
+# For BlinkM use attiny45:
+#
+#  make MCU=attiny45
+#
+# For BlinkM MaxM use attiny44:
+#
+#  make MCU=attiny44
+#
+MCU := attiny44
 RM := rm -rf
 ECHO = @
-AVR_LINK = $(ECHO) avr-gcc -Wl,-Map,out/slave.map -L/opt/local/avr/include -mmcu=attiny45
+AVR_LINK = $(ECHO) avr-gcc -Wl,-Map,out/slave.map -L/opt/local/avr/include -mmcu=$(MCU)
 AVR_SIZE = $(ECHO) -avr-size --format=Berkeley
 AVR_COMPILE_LOG = 'AVR Compiler: $@.c --> $@.o'
-AVR_COMPILE = $(ECHO)avr-gcc -Wall -Os -fpack-struct -fshort-enums -funsigned-char -funsigned-bitfields -mmcu=attiny45 -DF_CPU=1000000UL -MMD -MP \
+AVR_COMPILE = $(ECHO)avr-gcc -Wall -Os -fpack-struct -fshort-enums -funsigned-char -funsigned-bitfields -mmcu=$(MCU) -DF_CPU=1000000UL -MMD -MP \
 -MF"out/$@.d" -MT"out/$@.d" -c -o"out/$@.o" 
 AVR_FLASH = $(ECHO)-avr-objcopy -R .eeprom -O ihex
 TEST_COMPILER = $(ECHO)gcc -D TEST_MODE -Wall -Os -ftest-coverage -fprofile-arcs -fpack-struct -fshort-enums -funsigned-char -funsigned-bitfields
@@ -42,8 +55,8 @@ out/master.elf: master usiTwiMaster cyz_rgb cyz_cmd color
 	$(AVR_LINK) -o"out/master.elf"  out/master.o  out/usiTwiMaster.o out/cyz_cmd.o out/cyz_rgb.o out/color.o
 	
 out/master.hex: out/master.elf
-	@echo 'AVR Flash: master.elf --> master.hex'
-	$(AVR_FLASH) out/master.elf  "out/master.hex"
+	@echo 'AVR Flash: master.elf --> master-$(MCU).hex'
+	$(AVR_FLASH) out/master.elf  "out/master-$(MCU).hex"
 
 #slave firmware
 slave:
@@ -51,8 +64,8 @@ slave:
 	$(AVR_COMPILE) ../slave.c
 
 out/slave.hex: out/slave.elf
-	@echo 'AVR Flash: slave.elf --> slave.hex'
-	$(AVR_FLASH) out/slave.elf  "out/slave.hex"
+	@echo 'AVR Flash: slave.elf --> slave-$(MCU).hex'
+	$(AVR_FLASH) out/slave.elf  "out/slave-$(MCU).hex"
 
 out/slave.elf: slave usiTwiSlave cyz_cmd cyz_rgb color
 	@echo 'AVR Linker: slave.elf'
@@ -64,6 +77,7 @@ sizes: out/slave.elf out/master.elf
 
 clean:
 	-$(RM) out/*
+	-$(RM) out_test/*
 	-@echo ' '
 
 #tests and coverage

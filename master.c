@@ -6,6 +6,13 @@
 #define TWI_GEN_CALL         0x00
 #include "usiTwi/usiTwiMaster.h"
 
+#ifndef TIMSK
+#  define TIMSK TIMSK0
+#endif
+#ifndef TIFR
+#  define TIFR TIFR0
+#endif
+
 Color led_curr_color;
 Color led_fade_color;
 uint8_t led_fade;
@@ -15,8 +22,9 @@ int main(void) {
 	CYZ_RGB_init();
 	CYZ_CMD_init();
 
-	led_curr_color.r = 255;
-
+	led_curr_color.r = 0;
+	led_curr_color.g = 0;
+	led_curr_color.b = 0;
 
 	USI_TWI_Master_Initialise();
 

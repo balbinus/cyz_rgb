@@ -4,6 +4,13 @@
 #include "ring_buffer.h"
 #include "cyz/cyz_cmd.h"
 
+#ifndef TIMSK
+#  define TIMSK TIMSK0
+#endif
+#ifndef TIFR
+#  define TIFR TIFR0
+#endif
+
 Color led_curr_color;
 Color led_fade_color;
 uint8_t led_fade;
@@ -14,9 +21,12 @@ int main(void)
 	CYZ_RGB_init();
 	CYZ_CMD_init();
 
-	led_curr_color.r = 255;
+	led_curr_color.r = 0;
+	led_curr_color.g = 0;
+	led_curr_color.b = 0;
+	
 	CYZ_CMD_load_boot_params();
-	usiTwiSlaveInit(0x0d);
+	usiTwiSlaveInit();
 
 	TIFR   = (1 << TOV0);  /* clear interrupt flag */
 	TIMSK  = (1 << TOIE0); /* enable overflow interrupt */

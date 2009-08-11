@@ -76,7 +76,7 @@ void CYZ_RGB_init() {
 	cyz_rgb.pulse_count = 0xFF;
 	led_fade = 0;
 	led_fadespeed = 1;
-	PWM_DDR |= 1<<PINRED;
-	PWM_DDR |= 1<<PINGRN;
-	PWM_DDR |= 1<<PINBLU;
+	PWM_DDR_R |= 1<<PINRED;
+	PWM_DDR_G |= 1<<PINGRN;
+	PWM_DDR_B |= 1<<PINBLU;
 }

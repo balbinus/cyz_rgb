@@ -106,7 +106,7 @@ static char* test_execute_get_addr() {
 static char* test_execute_set_addr() {
 	CYZ_CMD_init();
 	cyz_cmd.addr = 0x0a;
-	uint8_t cmd[] = {'A', 0x0b, 0x0d, 0x0d, 0x0b };
+	uint8_t cmd[] = {'A', 0x0b, 0xd0, 0x0d, 0x0b };
 	_CYZ_CMD_execute(cmd);
 	mu_assert_eq(0x0b, cyz_cmd.addr);
 	return 0;
@@ -176,7 +176,7 @@ static char* test_execute_get_firmware_version() {
 	uint8_t cmd[] = {'Z'};
 	_CYZ_CMD_execute(cmd);
 	mu_assert_eq(0, ring_buffer_pop(&cyz_cmd.send_buffer));
-	mu_assert_eq(2, ring_buffer_pop(&cyz_cmd.send_buffer));
+	mu_assert_eq(3, ring_buffer_pop(&cyz_cmd.send_buffer));
 	return 0;
 }
 
@@ -611,8 +611,8 @@ static char * test_get_cmd_len() {
 	mu_assert_eq(4,CYZ_CMD_get_cmd_len(CMD_PLAY_LIGHT_SCRIPT));
 	mu_assert_eq(1,CYZ_CMD_get_cmd_len(CMD_STOP_SCRIPT));
 	mu_assert_eq(6,CYZ_CMD_get_cmd_len(CMD_SET_BOOT_PARMS));
-	mu_assert_eq(1,CYZ_CMD_get_cmd_len(CMD_SET_TIMEADJUST));
-	mu_assert_eq(1,CYZ_CMD_get_cmd_len(CMD_SET_FADESPEED));
+	mu_assert_eq(2,CYZ_CMD_get_cmd_len(CMD_SET_TIMEADJUST));
+	mu_assert_eq(2,CYZ_CMD_get_cmd_len(CMD_SET_FADESPEED));
 	mu_assert_eq(4,CYZ_CMD_get_cmd_len(CMD_SET_LEN_RPTS));
 	mu_assert_eq(5,CYZ_CMD_get_cmd_len(CMD_SET_ADDR));
 	mu_assert_eq(1,CYZ_CMD_get_cmd_len(CMD_GET_ADDR));

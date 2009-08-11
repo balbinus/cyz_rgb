@@ -13,7 +13,7 @@ static char * test_cyz_rgb_init() {
 	uint8_t pwm = 0;
 	pwm |= (1<<PINRED | 1<<PINGRN | 1<<PINBLU);
 
-	mu_assert_eq(PWM_DDR, pwm);
+	mu_assert_eq(PWM_DDR_R, pwm);
 	return 0;
 }
 

@@ -60,9 +60,9 @@ uint8_t CYZ_CMD_get_cmd_len (uint8_t cmd) {
 	case CMD_SET_BOOT_PARMS:
 		return 6;
 	case CMD_SET_TIMEADJUST:
-		return 1;
+		return 2;
 	case CMD_SET_FADESPEED:
-		return 1;
+		return 2;
 	case CMD_SET_LEN_RPTS:
 		return 4;
 	case CMD_SET_ADDR:
@@ -158,6 +158,7 @@ void _CYZ_CMD_execute(uint8_t* cmd) {
 		temp.timeadjust = cmd[5];
 		EEPROM_write_boot_parms(temp);
 	}
+	break;
 	case CMD_SET_FADESPEED:
 		if (cmd[1] != 0) {
 			led_fadespeed = cmd[1];
@@ -172,7 +173,7 @@ void _CYZ_CMD_execute(uint8_t* cmd) {
 		cyz_cmd.script_repeats = cmd[3];
 		break;
 	case CMD_SET_ADDR:
-		if (cmd[2] == 0x0d && cmd[3] == 0x0d && cmd[1] == cmd[4]) {
+		if (cmd[2] == 0xd0 && cmd[3] == 0x0d && cmd[1] == cmd[4]) { //d00d!
 			cyz_cmd.addr = cmd[1];
 			EEPROM_write_addr(cyz_cmd.addr);
 		}
@@ -185,7 +186,6 @@ void _CYZ_CMD_execute(uint8_t* cmd) {
 		ring_buffer_push(&cyz_cmd.send_buffer, led_curr_color.g);
 		ring_buffer_push(&cyz_cmd.send_buffer, led_curr_color.b);
 		break;
-
 	case CMD_GET_SCRIPT_LINE:
 	{
 		//TODO, make other scripts readable

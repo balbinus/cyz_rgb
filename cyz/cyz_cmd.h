@@ -11,7 +11,7 @@
 #include "../ring_buffer.h"
 
 #define VERSION_MAJOR 0
-#define VERSION_MINOR 2
+#define VERSION_MINOR 3
 
 #define CYZ_CMD_MAX_CMD_LEN 8
 #define CYZ_CMD_BOOTP_MAGIC 33
