@@ -47,9 +47,15 @@ int main(void)
 	return 1;
 }
 
-/*	Triggered when timer overflows. */
-/*  This runs fast enough that 255 calls are less than a glimpse for a human. */
-/*  TODO: figure out _actual_ math */
+/*  ISR Triggered when timer overflows. 
+ *
+ *  BlinkM fuses are set cpu clock to use internal oscillator at 8MHz.
+ *  Thus, our counter overflows and we execute this ISR 31250 times per second.
+ *  Our PWM period is spread over 256 calls to this ISR, so we have roughly 122
+ *  PWM periods per second.
+ *
+ * TODO: Use hardware PWM if available; reduce ISR code size; logarithmic dimming
+ */
 ISR(SIG_OVERFLOW0)
 {
 	CYZ_CMD_tick();
