@@ -39,90 +39,71 @@ void CYZ_CMD_init() {
 /* returns the length of the command, command+payload. */
 /* example "fadeToColor" is 'f',R,G,B: the returned length is 4 */
 /* 0xFF means error */
+/* This code compiles up smaller than a switch statement; please excuse it */
 uint8_t CYZ_CMD_get_cmd_len (uint8_t cmd) {
-	switch(cmd) {
-	case CMD_GO_TO_RGB:
-		return 4;
-	case CMD_FADE_TO_RGB:
-		return 4;
-	case CMD_FADE_TO_RND_RGB:
-		return 4;
-	case CMD_FADE_TO_HSB:
-		return 4;
-	case CMD_FADE_TO_RND_HSB:
-		return 4;
-	case CMD_WRITE_SCRIPT_LINE:
-		return 8;
-	case CMD_PLAY_LIGHT_SCRIPT:
-		return 4;
-	case CMD_STOP_SCRIPT:
-		return 1;
-	case CMD_SET_BOOT_PARMS:
-		return 6;
-	case CMD_SET_TIMEADJUST:
-		return 2;
-	case CMD_SET_FADESPEED:
-		return 2;
-	case CMD_SET_LEN_RPTS:
-		return 4;
-	case CMD_SET_ADDR:
-		return 5;
-	case CMD_GET_ADDR:
-		return 1;
-	case CMD_GET_RGB:
-		return 1;
-	case CMD_GET_SCRIPT_LINE:
-		return 3;
-	case CMD_GET_FIRMWARE_VERSION:
-		return 1;
-	case CMD_GET_DBG:
-		return 1;
-	}
+	
+	if (cmd==CMD_STOP_SCRIPT
+	 || cmd==CMD_GET_ADDR
+ 	 || cmd== CMD_GET_RGB 
+	 || cmd== CMD_GET_FIRMWARE_VERSION
+	 || cmd== CMD_GET_DBG)
+		{ return 1; }
+	if (cmd== CMD_SET_TIMEADJUST
+	 || cmd== CMD_SET_FADESPEED)
+		{ return 2; }
+	if (cmd== CMD_GET_SCRIPT_LINE)
+		{ return 3; }
+	if (cmd== CMD_GO_TO_RGB
+	 || cmd== CMD_FADE_TO_RGB
+	 || cmd== CMD_FADE_TO_RND_RGB
+	 || cmd== CMD_FADE_TO_HSB
+	 || cmd== CMD_FADE_TO_RND_HSB
+	 || cmd== CMD_SET_LEN_RPTS
+	 || cmd== CMD_PLAY_LIGHT_SCRIPT)
+		{ return 4; }
+	if (cmd== CMD_SET_ADDR)
+		{ return 5; }
+	if (cmd== CMD_SET_BOOT_PARMS)
+		{ return 6; }
+	if (cmd== CMD_WRITE_SCRIPT_LINE)
+		{ return 8; }
 	return 0xFF;
 }
 
+/* Again, the if/else syntax beats the switch statement by 54 bytes */
 void _CYZ_CMD_execute(uint8_t* cmd) {
-	switch (cmd[0]) {
-	case CMD_GET_DBG:
+
+	if (cmd[0] == CMD_GET_DBG) {
 		ring_buffer_push_array(&cyz_cmd.send_buffer, cyz_cmd.dbg, 8);
-		break;
-	case CMD_GO_TO_RGB:
+	} else if (cmd[0] ==  CMD_GO_TO_RGB) {
 		led_fade = 0;
 		led_curr_color.r = cmd[1];
 		led_curr_color.g = cmd[2];
 		led_curr_color.b = cmd[3];
-		break;
-	case CMD_FADE_TO_RGB:
+	} else if (cmd[0] ==  CMD_FADE_TO_RGB) {
 		led_fade = 1;
 		led_fade_color.r = cmd[1];
 		led_fade_color.g = cmd[2];
 		led_fade_color.b = cmd[3];
-		break;
-	case CMD_FADE_TO_RND_RGB:
+	} else if (cmd[0] ==  CMD_FADE_TO_RND_RGB) {
 		led_fade = 1;
 		led_fade_color.r = led_curr_color.r + CYZ_CMD_prng(cmd[1]);
 		led_fade_color.g = led_curr_color.g + CYZ_CMD_prng(cmd[2]);
 		led_fade_color.b = led_curr_color.b + CYZ_CMD_prng(cmd[3]);
-		break;
-	case CMD_FADE_TO_HSB:
+	} else if (cmd[0] ==  CMD_FADE_TO_HSB) {
 		led_fade = 1;
 		color_hsv_to_rgb(cmd[1], cmd[2], cmd[3], &led_fade_color.r, &led_fade_color.g, &led_fade_color.b);
-		break;
-	case CMD_FADE_TO_RND_HSB:
-	{
+	} else if (cmd[0] ==  CMD_FADE_TO_RND_HSB) {
 		led_fade = 1;
 		uint8_t h,s,v;
-		color_rgb_to_hsv(led_curr_color, &h, &s, &v);
+		color_rgb_to_hsv(led_curr_color, &h, &s, &v); //TODO See if this is really necessary; it would save hundreds of bytes.
 		h += CYZ_CMD_prng(cmd[1]);
 		s += CYZ_CMD_prng(cmd[2]);
 		v += CYZ_CMD_prng(cmd[3]);
 		color_hsv_to_rgb(h, s, v, &led_fade_color.r, &led_fade_color.g, &led_fade_color.b);
-	}
-	break;
-	case CMD_WRITE_SCRIPT_LINE:
-	{
+	} else if (cmd[0] ==  CMD_WRITE_SCRIPT_LINE) {
 		if (cmd[2] > MAX_SCRIPT_LEN-1)
-			break;
+			return;
 		//TODO: cmd[1] (script id) is ignored, only one script can be written
 
 		script_line tmp;
@@ -132,19 +113,14 @@ void _CYZ_CMD_execute(uint8_t* cmd) {
 		tmp.cmd[2] = cmd[6];
 		tmp.cmd[3] = cmd[7];
 		EEPROM_write_script_line(tmp, cmd[2]); // cmd[2] is line number
-	}
-	break;
-	case CMD_PLAY_LIGHT_SCRIPT:
+	} else if (cmd[0] ==  CMD_PLAY_LIGHT_SCRIPT) {
 		cyz_cmd.play_script = cmd[1]+1;
 		cyz_cmd.script_repeats = cmd[2];
 		cyz_cmd.script_pos = cmd[3];
 		cyz_cmd.tick_count = 0;
-		break;
-	case CMD_STOP_SCRIPT:
+	} else if (cmd[0] ==  CMD_STOP_SCRIPT) {
 		cyz_cmd.play_script = 0;
-		break;
-	case CMD_SET_BOOT_PARMS:
-	{
+	} else if (cmd[0] ==  CMD_SET_BOOT_PARMS) {
 		boot_parms temp;
 		temp.magic = CYZ_CMD_BOOTP_MAGIC;
 		if (cmd[1] > 0) {
@@ -157,51 +133,37 @@ void _CYZ_CMD_execute(uint8_t* cmd) {
 		temp.fadespeed = cmd[4];
 		temp.timeadjust = cmd[5];
 		EEPROM_write_boot_parms(temp);
-	}
-	break;
-	case CMD_SET_FADESPEED:
+	} else if (cmd[0] ==  CMD_SET_FADESPEED) {
 		if (cmd[1] != 0) {
 			led_fadespeed = cmd[1];
 		}
-		break;
-	case CMD_SET_TIMEADJUST:
+	} else if (cmd[0] ==  CMD_SET_TIMEADJUST) {
 		cyz_cmd.timeadjust = cmd[1];
-		break;
-	case CMD_SET_LEN_RPTS:
+	} else if (cmd[0] ==  CMD_SET_LEN_RPTS) {
 		//cmd[1] is script number, currently ignored, can only set script 0
 		cyz_cmd.script_length = cmd[2];
 		cyz_cmd.script_repeats = cmd[3];
-		break;
-	case CMD_SET_ADDR:
+	} else if (cmd[0] ==  CMD_SET_ADDR) {
 		if (cmd[2] == 0xd0 && cmd[3] == 0x0d && cmd[1] == cmd[4]) { //d00d!
 			cyz_cmd.addr = cmd[1];
 			EEPROM_write_addr(cyz_cmd.addr);
 		}
-		break;
-	case CMD_GET_ADDR:
+	} else if (cmd[0] ==  CMD_GET_ADDR) {
 		ring_buffer_push(&cyz_cmd.send_buffer, cyz_cmd.addr);
-		break;
-	case CMD_GET_RGB:
+	} else if (cmd[0] ==  CMD_GET_RGB) {
 		ring_buffer_push(&cyz_cmd.send_buffer, led_curr_color.r);
 		ring_buffer_push(&cyz_cmd.send_buffer, led_curr_color.g);
 		ring_buffer_push(&cyz_cmd.send_buffer, led_curr_color.b);
-		break;
-	case CMD_GET_SCRIPT_LINE:
-	{
+	} else if (cmd[0] ==  CMD_GET_SCRIPT_LINE) {
 		//TODO, make other scripts readable
 		//cmd[1] is ignore: only script 0 can be read
 		script_line tmp;
 		EEPROM_read_script_line(tmp, cmd[2]);
 		ring_buffer_push(&cyz_cmd.send_buffer, tmp.dur);
 		ring_buffer_push_array(&cyz_cmd.send_buffer, tmp.cmd, 4);
-	}
-	break;
-	case CMD_GET_FIRMWARE_VERSION:
-	{
+	} else if (cmd[0] ==  CMD_GET_FIRMWARE_VERSION) {
 		ring_buffer_push(&cyz_cmd.send_buffer, VERSION_MAJOR);
 		ring_buffer_push(&cyz_cmd.send_buffer, VERSION_MINOR);
-	}
-	break;
 	}
 }
 
