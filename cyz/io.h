@@ -1,8 +1,9 @@
 #ifndef TEST_MODE
 #include <avr/io.h>
+#include "cyz_rgb.h"
 
 /* BlinkM */
-#if defined( __AVR_ATtiny45__ ) 
+#if defined( BLINKM_TYPE_BLINKM )
 #  define PWM_PORT_R PORTB
 #  define PWM_PORT_G PORTB
 #  define PWM_PORT_B PORTB
@@ -15,9 +16,7 @@
 #  define PINBLU PB1
 #endif
 
-/* BlinkM MaxM */
-#if defined( __AVR_ATtiny44__ ) | \
-    defined( __AVR_ATtiny84__ )
+#if defined( BLINKM_TYPE_MAXM )
 #  define PWM_PORT_R PORTB
 #  define PWM_PORT_G PORTA
 #  define PWM_PORT_B PORTA

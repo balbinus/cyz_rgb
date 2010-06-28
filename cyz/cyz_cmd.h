@@ -10,8 +10,8 @@
 #include "progmem.h"
 #include "../ring_buffer.h"
 
-#define VERSION_MAJOR 0
-#define VERSION_MINOR 3
+#define VERSION_MAJOR 0x01
+#define VERSION_MINOR 0x03
 
 #define CYZ_CMD_MAX_CMD_LEN 8
 #define CYZ_CMD_BOOTP_MAGIC 33

@@ -1,10 +1,12 @@
+
 #include "color.h"
 
 /* TODO This function is only used by the fade to random HSV. It might be possible to eliminate */
 void color_rgb_to_hsv(Color rgb, uint8_t* hue, uint8_t* sat, uint8_t* val) {
-    uint8_t rgb_min, rgb_max;
-    rgb_min = MIN3(rgb.r, rgb.g, rgb.b);
-    rgb_max = MAX3(rgb.r, rgb.g, rgb.b);
+
+    uint8_t rgb_min = MIN3(rgb.r, rgb.g, rgb.b);
+    uint8_t rgb_max = MAX3(rgb.r, rgb.g, rgb.b);
+	uint8_t rgb_delta = rgb_max - rgb_min;
 
     *val = rgb_max;
     if (*val == 0) {
@@ -12,20 +14,21 @@ void color_rgb_to_hsv(Color rgb, uint8_t* hue, uint8_t* sat, uint8_t* val) {
         return;
     }
 
-    *sat = 255*(rgb_max - rgb_min)/ *val;
+    *sat = 255*(rgb_delta)/ *val;
     if (*sat == 0) {
         *hue = 0;
         return;
     }
 
-    /* Compute hue */
+    // Compute hue 
     if (rgb_max == rgb.r) {
-        *hue = 0 + 43*(rgb.g - rgb.b)/(rgb_max - rgb_min);
+        *hue = 0 + 43*(rgb.g - rgb.b)/rgb_delta;
     } else if (rgb_max == rgb.g) {
-        *hue = 85 + 43*(rgb.b - rgb.r)/(rgb_max - rgb_min);
-    } else /* rgb_max == rgb.b */ {
-        *hue = 171 + 43*(rgb.r - rgb.g)/(rgb_max - rgb_min);
+        *hue = 85 + 43*(rgb.b - rgb.r)/rgb_delta;
+    } else { // rgb_max == rgb.b
+        *hue = 171 + 43*(rgb.r - rgb.g)/rgb_delta;
     }
+
 }
 
 /**
@@ -35,12 +38,13 @@ void color_rgb_to_hsv(Color rgb, uint8_t* hue, uint8_t* sat, uint8_t* val) {
  */
 void color_hsv_to_rgb(uint8_t h, uint8_t s, uint8_t v, uint8_t* r, uint8_t* g, uint8_t* b)
 {
+
 	if ( s == 0 )
 	{
 		*b = *g = *r = v;
 	}
 	else
-	{
+	{	
 		
 		uint8_t var_i = h/43;                                 // Hue quadrant (sixths) - 43 is (256/6)
 		uint8_t var_h = (var_i*43)/16;                        // Caculate quadrant floor/16: 
@@ -60,4 +64,6 @@ void color_hsv_to_rgb(uint8_t h, uint8_t s, uint8_t v, uint8_t* r, uint8_t* g, u
 		else if ( var_i == 4 ) { *r = var_3 ; *g = var_1 ; *b = v;     } // 240 deg (b)   to 300 deg (b+r)
 		else                   { *r = v     ; *g = var_1 ; *b = var_2; } // 300 deg (b+r) to 0   deg (r)
 	}
+
 }
+

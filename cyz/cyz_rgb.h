@@ -44,17 +44,24 @@
 #include "color.h"
 #include "io.h"
 
-typedef struct CYZ_RGB {
-	uint8_t pulse_count;
-} Cyz_rgb;
-
-Cyz_rgb cyz_rgb;
-
 void CYZ_RGB_init();
-void _CYZ_RGB_pulse();
-
+void _CYZ_RGB_fade_step_component(uint8_t*, uint8_t*);
 
 #define MIN(a, b)  (((a) < (b)) ? (a) : (b))
 
 
 #endif
+
+/* BlinkM Original */
+#if defined( __AVR_ATtiny45__ ) | \
+    defined( __AVR_ATtiny85__ )
+#define BLINKM_TYPE_BLINKM
+#endif
+
+/* BlinkM MaxM */
+#if defined( __AVR_ATtiny44__ ) | \
+    defined( __AVR_ATtiny84__ )
+#define BLINKM_TYPE_MAXM
+#endif
+
+

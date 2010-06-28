@@ -7,7 +7,7 @@ uint8_t EEMEM EEaddr;
 script EEMEM EEscript;
 
 const script fl_script_rgb PROGMEM = {
-		3, // number of lines
+		0, // number of lines
 		0, // number of repeats
 		{
 			{ 50, {'n', 0xff,0x00,0x00}},
@@ -96,7 +96,7 @@ void _CYZ_CMD_execute(uint8_t* cmd) {
 	} else if (cmd[0] ==  CMD_FADE_TO_RND_HSB) {
 		led_fade = 1;
 		uint8_t h,s,v;
-		color_rgb_to_hsv(led_curr_color, &h, &s, &v); //TODO See if this is really necessary; it would save hundreds of bytes.
+		color_rgb_to_hsv(led_curr_color, &h, &s, &v); //TODO See if this is really necessary; it would save hundreds of bytes!
 		h += CYZ_CMD_prng(cmd[1]);
 		s += CYZ_CMD_prng(cmd[2]);
 		v += CYZ_CMD_prng(cmd[3]);
