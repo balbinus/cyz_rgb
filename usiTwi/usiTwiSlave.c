@@ -557,7 +557,15 @@ ISR( USI_OVERFLOW_VECTOR )
       else
       {
         // the buffer is empty
-        SET_USI_TO_TWI_START_CONDITION_MODE( );
+
+		// The buffer is only empty because the master requested data before it was available
+		// We were sending a NACK here but the arduino wire library performs a blocking read, so
+		// really all we want to do is to keep SCL low here and return until data gets put in the
+		// tx buffer and a send is initiated by the call in the main loop. There is probably a
+		// more elegant approach than this, but in testing this appears to work much better than
+		// before.
+
+        //SET_USI_TO_TWI_START_CONDITION_MODE( );
         return;
       } // end if
       overflowState = USI_SLAVE_REQUEST_REPLY_FROM_SEND_DATA;
