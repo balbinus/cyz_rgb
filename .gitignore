@@ -1,0 +1,7 @@
+*.o
+**/*.o
+*.d
+**/*.d
+out/*.elf
+out/*.hex
+out/*.map
