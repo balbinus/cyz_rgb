@@ -33,23 +33,12 @@ attiny13at9.build.core=core13
 #define WAIT_FOR_START_BIT 1
 
 // Pin definitions
-#define DMX_IN 4 // PortB1 = actual pin 3 on chip
-#define INPUT_PULLUPS 0b00000011 // pin 0 & 1 for pull ups only
-#define UP_KEY 0b00000010
-#define DN_KEY 0b00000001
-#define KEYS   0b00000011
-#define DEBUG_PIN 0b10000000 
-#define LED_MASK 0b00001000 
-// precise timings etc
-#define MAXCHANNELS 512
-#define PINMASK 0b00010000
-#define DEBOUNCE 100 // debounce time in micros 
-// WS2812 specific
-#define DIGITAL_PIN   (2)         // Digital port number
-#define PORT          (PORTB)     // Digital pin's port
-#define PORT_PIN      (PORTB2)    // Digital pin's bit position
-#define DMX_PIN       (PORTB1)
-#define NUM_CHANS     (13) 
+#define DEBUG_PIN   0b10000000
+#define LED_MASK    0b00001000
+#define PINMASK     0b00010000
+#define PORT        (PORTB)     // Digital pin's port
+#define DMX_PIN     (PORTB1)
+#define NUM_CHANS   (3)
 
 uint8_t lastRaw, key; // 2 bytes (2) 
 uint8_t rxData, state, chCount, x, LED_count; // 5 bytes (7) // flags,
@@ -63,7 +52,6 @@ int main(void)
 {
     // Init
     DDRB |= 0b00001100; // set data direction for debug etc
-    PORTB |= INPUT_PULLUPS; // used when setting key inputs
     // EEPROM INIT (if uninitialsed, then init !)
     if (eeprom_read_byte((unsigned char *) 2))
     {
