@@ -41,6 +41,11 @@ out/master.elf: $(BASE_OBJS) $(MASTER_OBJS)
 out/slave.elf: $(BASE_OBJS) $(SLAVE_OBJS)
 	$(LD) $(LDFLAGS) -o $@ $^
 
+test_dmx512: test_dmx512.o
+	$(LD) $(LDFLAGS) -o out/$@.elf $^
+	$(OBJCOPY) out/$@.elf out/$@.hex
+	$(AVR_SIZE) out/$@.elf
+
 #print sizes of binary	
 sizes: out/slave.elf out/master.elf
 	$(AVR_SIZE) out/slave.elf
@@ -49,9 +54,18 @@ sizes: out/slave.elf out/master.elf
 clean:
 	-$(RM) *.o **/*.o *.d **/*.d out/*
 	-@echo ' '
-	
-.PHONY: all clean dependents
-.SECONDARY:
+
+# Upload to slave, burn the fuses.
+upload-slave: out/slave.hex
+       avrdude -c usbtiny -p t85 -v -e -U flash:w:out/slave-attiny45.hex -C /etc/avrdude.conf
+
+fuses-8M:
+       avrdude -C /etc/avrdude.conf -c usbtiny -p t85 -v -e -U hfuse:w:0xdf:m -U lfuse:w:0xe2:m -U efuse:w:0xff:m
+
+fuses-1M:
+       avrdude -C /etc/avrdude.conf -c usbtiny -p t85 -v -e -U hfuse:w:0xdf:m -U lfuse:w:0x62:m -U efuse:w:0xff:m
+
+.PHONY: all clean test_dmx512 upload-slave fuses-1M fuses-8M
 
 # added "-" in the beginning, so that we don't get an error if the file is not present
 -include $(DEPS)

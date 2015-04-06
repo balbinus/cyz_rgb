@@ -29,6 +29,18 @@
 #  define PINBLU PA5
 #endif
 
+#ifdef COMMON_ANODE
+/******************************/
+/* turn off single leds */
+#define RED_LED_ON PWM_PORT_R &= ~(1<<PINRED)
+#define GRN_LED_ON PWM_PORT_G &= ~(1<<PINGRN)
+#define BLU_LED_ON PWM_PORT_B &= ~(1<<PINBLU)
+
+/* turn on single leds */
+#define RED_LED_OFF PWM_PORT_R |= 1<<PINRED
+#define GRN_LED_OFF PWM_PORT_G |= 1<<PINGRN
+#define BLU_LED_OFF PWM_PORT_B |= 1<<PINBLU
+#else
 /******************************/
 /* turn off single leds */
 #define RED_LED_OFF PWM_PORT_R &= ~(1<<PINRED)
@@ -39,6 +51,7 @@
 #define RED_LED_ON PWM_PORT_R |= 1<<PINRED
 #define GRN_LED_ON PWM_PORT_G |= 1<<PINGRN
 #define BLU_LED_ON PWM_PORT_B |= 1<<PINBLU
+#endif
 #else
 uint8_t pin_red, pin_grn, pin_blu, portb, ddrb;
 #define PWM_PORT_R portb
