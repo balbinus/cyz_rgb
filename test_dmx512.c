@@ -27,6 +27,8 @@ attiny13at9.build.core=core13
 #include <avr/interrupt.h>
 #include <avr/io.h>
 #include <avr/eeprom.h>
+#include <util/delay.h>
+
 #define WAIT_FOR_BREAK_START 0
 #define WAIT_FOR_START_BIT 1
 
@@ -56,8 +58,6 @@ uint16_t DMXstart, rxCount; // 4 bytes (15)
 uint8_t dmxData[NUM_CHANS];  
 
 void EEPROMwrite(uint16_t val);
-void readKeys(void);
-void WS2812(void);
 
 int main(void)
 {
@@ -73,7 +73,6 @@ int main(void)
     // READ EEPROM
     DMXstart = eeprom_read_byte((unsigned char *) 0) + (eeprom_read_byte((unsigned char *) 1) << 8); 
     cli();
-    WS2812(); // clear LEDs
     
     // Run forever
     for (;;)
@@ -90,7 +89,12 @@ int main(void)
                 // this value should really be <22 to measure 88us
                 while (chCount < 22)
                 {
-                    asm ("ldi %0,8\n break:\n dec %0\n brne break\n" :: "r" (8) ); // to give a 4us loop 
+                    //~ asm ( "ldi %0,8\n\t"
+                       //~ "break:\n\t"
+                          //~ "dec %0\n\t"
+                          //~ "brne break\n"
+                          //~ :: "r" (8) ); // to give a 4us loop 
+                    _delay_us(4); // 4 us delay
                     if (PINB & PINMASK)
                     {
                         // if High then reset count
@@ -107,7 +111,7 @@ int main(void)
                 if (!LED_count--)
                 {
                     PORTB ^= LED_MASK;
-                    LED_count=16;
+                    LED_count = 16;
                 }
                 rxCount = chCount = 0; // reset byte counter
                 state = WAIT_FOR_START_BIT; // set next state
@@ -146,7 +150,9 @@ int main(void)
                     { 
                         t=dmxData[x+1]; dmxData[x+1]=dmxData[x]; dmxData[x]=t; // rearrange RGB input to GRB for WS2812
                     }
-                    WS2812(); // output data to devices
+                    
+                    // --- FIXME FIXME output data to devices
+                    
                     state = WAIT_FOR_BREAK_START; // start all over again
                     break;
                 }
@@ -156,54 +162,8 @@ int main(void)
     return 0;
 }
 
-void WS2812(void)
-{
-    //~ for (volatile uint8_t y=1; y<NUM_CHANS; y++)
-    //~ {
-        //~ asm volatile(
-            //~ "ldi  %3, 8\n\t"      // reset number of bits
-         //~ "nextbit:\n\t"          // label                       
-            //~ "sbi  %0, %1\n\t"     // SET OUTPUT HIGH
-            //~ "sbrs %4, 7\n\t"      // Skip output low if HiBit in value is set  
-            //~ "cbi %0, %1\n\t"      // SET OUTPUT LOW, early for a low
-            //~ "sbrc %4, 7\n\t"      // Skip output low if HiBit in value is clear  
-            //~ "cbi %0, %1\n\t"      // SET OUTPUT LOW, late for a high
-            //~ "rol  %4\n\t"         // shift value left to get to next bit
-            //~ "dec  %3\n\t"         // decrement nBits
-            //~ "brne nextbit\n\t"    // branch if bits not finished
-            //~ ::
-            //~ // Input operands         Operand Id (w/ constraint)
-            //~ "I" (_SFR_IO_ADDR(PORT)), // %0
-            //~ "I" (PORT_PIN),           // %1
-            //~ "e" (&PORT),              // %a2
-            //~ "r" (8),                  // %3
-            //~ "r" (dmxData[y])          // %4
-        //~ ); // asm
-    //~ } // x loop
-    readKeys();
-}
-
-void readKeys(void) {
-    //~ uint8_t raw = ~PINB & KEYS; // read key in reverse
-    //~ if (raw != lastRaw) {
-     //~ keyTime = micros(); 
-    //~ }
-    //~ if ((micros() - keyTime) > DEBOUNCE && raw != key) { 
-      //~ key = raw;
-      //~ if ( key == KEYS ) { 
-        //~ EEPROMwrite(1); // reset DMX channel to 1
-      //~ }
-      //~ if ( (key == DN_KEY) && DMXstart > 1) { 
-        //~ EEPROMwrite(--DMXstart); // decrease DMX channel & save
-      //~ } 
-      //~ if ( (key == UP_KEY) && DMXstart < (uint16_t) (MAXCHANNELS - NUM_CHANS) ) { 
-        //~ EEPROMwrite(++DMXstart); // increase DMX channel & save
-      //~ } 
-    //~ }
-    //~ lastRaw = raw;
-}
-
-void EEPROMwrite(uint16_t val) { 
-  eeprom_write_byte((unsigned char *) 0, val); 
-  eeprom_write_byte((unsigned char *) 1, val>>8); 
+void EEPROMwrite(uint16_t val)
+{ 
+    eeprom_write_byte((unsigned char *) 0, val); 
+    eeprom_write_byte((unsigned char *) 1, val>>8); 
 }
