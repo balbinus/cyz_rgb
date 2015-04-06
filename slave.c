@@ -15,14 +15,14 @@ uint8_t led_fadespeed;	//Speed of fade
  * Pinout on ATTiny44 (BlinkM MaxM):
  * 
  *                (+) VCC  1 -     - 14 GND (-)
- *                     NC  2 -     - 13 PA0/ADC0
- *                     NC  3 -     - 12 PA1/ADC1
- *                 /RESET  4 -     - 11 PA2/ADC2
+ *                 NC/PB0  2 -     - 13 PA0/ADC0
+ *                 NC/PB1  3 -     - 12 PA1/ADC1
+ *             !RESET/PB3  4 -     - 11 PA2/ADC2
  *                RED/PB2  5 -     - 10 PA3/ADC3
  *              GREEN/PA7  6 -     - 9  PA4/SCL
  *                SDA/PA6  7 -     - 8  PA5/BLUE
  */
-  
+
 int main(void)
 {
 	CYZ_RGB_init();
