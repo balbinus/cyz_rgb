@@ -16,7 +16,7 @@ const script fl_script_rgb PROGMEM = {
 		}
 };
 
-const script* scripts[] PROGMEM = {
+const script* scripts[] = {
 		&fl_script_rgb,   // 1
 };
 
@@ -228,8 +228,8 @@ void CYZ_CMD_receive_one_byte(uint8_t in) {
 uint8_t CYZ_CMD_prng(uint8_t range) {
 	static uint8_t count = 1;
 	if (range == 0) return 0;
-	uint8_t x = ++count + cyz_cmd.tick_count;
-	return ((uint8_t)((++x >> 4) + ((x << 3) & M) - (x >> 7) - ((x << 6) & M)))%range;
+	uint8_t x = ++count + cyz_cmd.tick_count + 1;
+	return ((uint8_t)((x >> 4) + ((x << 3) & M) - (x >> 7) - ((x << 6) & M)))%range;
 }
 
 void CYZ_CMD_tick() {

@@ -1,6 +1,6 @@
 #ifndef _COLOR_H_
 #define _COLOR_H_
-#import <inttypes.h>
+#include <inttypes.h>
 typedef struct _color {
     uint8_t r;
 	uint8_t g;

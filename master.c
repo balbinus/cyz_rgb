@@ -91,5 +91,5 @@ ISR(SIG_OVERFLOW0)
 {
 	CYZ_CMD_tick();
 	cyz_master_send_color();
-	_CYZ_RGB_pulse();
+	//_CYZ_RGB_pulse();
 }
